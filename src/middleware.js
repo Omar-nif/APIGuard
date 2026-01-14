@@ -1,76 +1,47 @@
+import { createRequestEvent } from './events/requestEvent.js';
+import { generateRequestId } from './utils/generateRequestId.js';
+
 export default function createApiguard(options = {}) {
-    const {
-      log = true,
-      slowThreshold = null,
-      ignorePaths = [],
-      onRequest = null
-    } = options;
-  
-    return function apiGuardMiddleware(req, res, next) {
-      const startTime = Date.now();
-  
+  const {
+    log = true,
+    slowThreshold = null,
+    ignorePaths = [],
+    onRequest = null
+  } = options;
+
+  return function apiGuardMiddleware(req, res, next) {
+    const startTime = Date.now();
+    const id = generateRequestId();
+    const ignored = ignorePaths.includes(req.path);
+
+    try {
       res.on('finish', () => {
-        try {
-          const duration = Date.now() - startTime;
-          const ignored = ignorePaths.includes(req.path);
-  
-          const statusCode = res.statusCode;
-          const isSlow =
-            slowThreshold !== null && duration >= slowThreshold;
-  
-          const requestEvent = {
-            id: generateRequestId(),
-            timestamp: startTime,
-  
-            request: {
-              method: req.method,
-              path: req.path,
-              originalUrl: req.originalUrl,
-              ip: req.ip,
-              userAgent: req.headers['user-agent'] || null
-            },
-  
-            response: {
-              statusCode,
-              success: statusCode < 400
-            },
-  
-            performance: {
-              duration,
-              slow: isSlow,
-              threshold: slowThreshold
-            },
-  
-            meta: {
-              ignored,
-              error: null
-            }
-          };
-  
-          // Log interno
-          if (log && !ignored) {
-            console.log('[APIGUARD]', requestEvent);
-          }
-  
-          // Hook público
-          if (typeof onRequest === 'function' && !ignored) {
-            try {
-              onRequest(requestEvent);
-            } catch (hookError) {
-              console.error('[APIGUARD] Error en onRequest hook:', hookError);
-            }
-          }
-  
-        } catch (error) {
+        const duration = Date.now() - startTime;
+
+        const requestEvent = createRequestEvent({
+          id,
+          startTime,
+          duration,
+          req,
+          res,
+          slowThreshold,
+          ignored
+        });
+
+        // Hook público
+        if (typeof onRequest === 'function') {
+          onRequest(requestEvent);
+        }
+
+        // Log por defecto
+        if (log && !ignored) {
+          console.log('[APIGUARD]', requestEvent);
         }
       });
+
       next();
-    };
-  }
-  
-  function generateRequestId() {
-    return `req_${Date.now()}_${Math.random()
-      .toString(36)
-      .slice(2, 8)}`;
-  }
-  
+    } catch (error) {
+      next();
+    }
+  };
+}
