@@ -1,36 +1,33 @@
 import express from 'express';
-import apiGuard from '../src/index.js';
+import createApiguard from '../src/middleware.js';
+import { createSlowRequestDetector } from '../src/detectors/slowRequest.js';
 
 const app = express();
-app.use(express.json());
 
-// montar APIGuard
+const slowDetector = createSlowRequestDetector({
+  onSlow(event) {
+    console.log('SLOW REQUEST DETECTED');
+    console.log(event.request.method, event.request.path);
+    console.log(`Duration: ${event.performance.duration}ms`);
+  }
+});
+
 app.use(
-  apiGuard({
-    log: true,
+  createApiguard({
     slowThreshold: 500,
-    ignorePaths: ['/health', '/favicon.ico']
+    onRequest: slowDetector
   })
 );
 
-// rutas normales
-app.get('/health', (req, res) => {
-  res.send('OK');
-});
-
 app.get('/fast', (req, res) => {
-  res.json({ ok: true });
+  res.send('fast');
 });
 
 app.get('/slow', async (req, res) => {
-  await new Promise(resolve => setTimeout(resolve, 800));
-  res.json({ ok: true });
-});
-
-app.post('/login', (req, res) => {
-  res.json({ user: req.body.email });
+  await new Promise(r => setTimeout(r, 800));
+  res.send('slow');
 });
 
 app.listen(3000, () => {
-  console.log('Servidor de prueba en http://localhost:3000');
+  console.log('Servidor en http://localhost:3000');
 });
