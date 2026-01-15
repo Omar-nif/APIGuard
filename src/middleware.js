@@ -1,5 +1,5 @@
 import { createRequestEvent } from './events/requestEvent.js';
-import { generateRequestId } from './utils/generateRequestId.js';
+import generateRequestId from './utils/generateRequestId.js';
 
 export default function createApiguard(options = {}) {
   const {
