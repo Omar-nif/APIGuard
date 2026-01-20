@@ -1,61 +1,77 @@
-export function createPathProbingAnalyzer(options = {}) {
-    const {
-        windowMs = 30_000,
-        thresholds = {
-            notFound: 5,
-            entropy: 2,
-            frequency: 1
-        },
-        onThreat = null
-    } = options;
+import { createSignal } from "../signals/createSignal";
 
-    const ipSingnals = new Map();
+export function createPathProbingAnalyzer({
+    bus,
+    windowMs = 60_000,
+    minNotFound = 5
+}) {
+    if (!bus) {
+        throw new Error('pathProbingAnalyzer requieres a signal bus');
+    }
 
-    return function analyze(signal) {
-        const ip = signal.event.request.ip;
+    const source = new Map();
+
+    bus.on('signal', signal => {
+        if (
+            signal.type !== 'not-found' &&
+            signal.type !== 'path-frequency'
+        ) {
+            return;
+        }
+
+        const source = signal.source?.ip || 'unknown';
         const now = Date.now();
 
-        if (!ipSingnals.has(ip)) {
-            ipSingnals.set(ip, []);
+        let record = source.get(source);
+
+        if (!record) {
+            record = {
+                notFoundCount: 0,
+                repeatedPaths: new Set(),
+                firstSeen: now,
+                alerted: false
+            };
+            source.set(source, record);
         }
 
-        const list = ipSignals.get(ip);
-
-        list.push( {signal, timestamp: now} );
-
-        //limpiar ventana
-        while (list.lenght && list[0].timestamp < now - windowMs) {
-            list.shift();
+        // Reset ventana
+        if (now - record.firstSeen > windowMs) {
+            record.notFoundCount = 0;
+            record.repeatedPaths.clear();
+            record.firstSeen = now;
+            record.alerted = false;
         }
 
-        const summary = {
-            notFound: 0,
-            entropy: 0,
-            frequency: 0
-        };
-
-        for (const entry of list) {
-            if (entry.signal.type === 'not-found') summary.notFound++;
-            if (entry.signal.type === 'path-entropy') summary.entropy++;
-            if (entry.signal.type === 'path-frequency') summary.frequency++;
+        if (signal.type === 'not-found') {
+            record.notFoundCount += 1;
         }
 
-        const isThreat = 
-        summary.notFound >= thresholds.notFound && 
-        summary.entropy >= thresholds.entropy &&
-        summary.frequency >= thresholds.frequency;
+        if (signal.type === 'path-frequency') {
+            record.repeatedPaths.add(signal.meta.path);
+        }
 
-        if (isThreat && typeof onThreat === 'function') {
-            onThreat({
+        // Regla de decision
+
+        if (
+            !record.alerted &&
+            record.notFoundCount >= minNotFound &&
+            record.repeatedPaths.size >= 1
+        ) {
+            record.alerted = true;
+
+            const threat = createSignal({
                 type: 'path-probing',
+                category: 'threat',
                 severity: 'high',
-                ip,
-                summary,
-                evidence: list.map(e => e.signal)
+                source: signal.source,
+                meta: {
+                    reason: 'Multiple 404s with repeated path acces',
+                    notFoundCount: record.notFoundCount,
+                    repeatedPaths: Array.from(record.repeatedPaths),
+                    windowMs
+                }
             });
-
-            //opcional: resetear para no disparar en loop
-            ipSingnals.set(ip, []);
+            bus.emit(threat);
         }
-    };
+    });
 }
