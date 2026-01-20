@@ -1,52 +1,56 @@
 import { createSignal } from "../signals/createSignal";
 
-export function createPathFrequencyDetector(options = {}) {
-    const {
-        windowMs = 10_000, //ventana de tiempo
-        threshold = 10, //cuantas veces
-        onDetect = null
-    } = options;
+export function createPathFrequencyDetector({
+    bus,
+    threshold = 10,
+    windowMs = 60_000 // 1 minuto
+  }) {
+    if (!bus) {
+      throw new Error('pathFrequencyDetector requires a signal bus');
+    }
 
-    // path -> timestamps[]
-    const pathHits = new Map();
+    const paths = new Map();
 
     return function pathFrecuencyDetector(event) {
         if (!event || event.meta.ignored) return;
 
         const { path } = event.request;
-        const now = event.timestap;
+        const now = Date.now();
 
-        if (!pathHits.has(path)) {
-            pathHits.set(path, []);
+        const record = paths.get(path);
+
+        if (!record) {
+            paths.set(path, {
+                count: 1,
+                firstSeen: now
+            });
+            return;
         }
 
-        const timestamps = pathHits.get(path);
-
-        //Agregar el evento actual
-        timestamps.push(now);
-
-        //Limpiar eventos fuera de la ventana
-        while (timestamps.lenght && timestamps[0] < now - windowMs) {
-            timestamps.shift();
+        //si se sale de la ventana, reiniciamos
+        if (now - record.firstSeen > windowMs) {
+            path.set(path, {
+                count: 1,
+                firstSeen: now
+            });
+            return;
         }
 
-        // ¿Se supero el umbral?
-        if (timestamps.lenght >= threshold) {
+        record.count += 1;
+
+        if (record.count === threshold) {
             const signal = createSignal({
                 type: 'path-frequency',
+                category: 'path-probing',
                 severity: 'medium',
-                message: 'Uso repetitivo de un mismo endpoint',
                 event,
-                data: {
+                meta: {
                     path,
-                    count: timestamps.lenght,
+                    count: record.count,
                     windowMs
                 }
-            });;
-
-            if (typeof onDetect === 'function') {
-                onDetect(signal);
-            }
+            });
+            bus.emit(signal);
         }
     };
 }

@@ -9,21 +9,20 @@ event.request.path
 
 import { createSignal } from "../signals/createSignal";
 
-export function createNotFoundDetector({ emitSignal } = {}) {
+export function createNotFoundDetector({ bus }) {
 
-    if (typeof emitSignal !== 'function') {
-        throw new Error('notFoundDetector requires emitSignal function');
+    if (!bus) {
+        throw new Error('notFoundDetector requires a signal bus');
     } 
 
     return function notFoundDetector(event) {
         if (!event || event.meta.ignored) return;
 
-        const { statusCode } = event.response;
+        const { response, request } = event;
 
-        if (statusCode !== 404) return;
+        if (response.statusCode !== 404) return;
 
-        emitSignal(
-            createSignal({
+        const signal = createSignal({
                 type: 'NOT_Found',
                 source: 'notFoundDetector',
                 event,
@@ -32,6 +31,5 @@ export function createNotFoundDetector({ emitSignal } = {}) {
                     statusCode
                 }
             })
-        );
     };
 }
