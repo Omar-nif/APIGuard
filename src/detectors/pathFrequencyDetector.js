@@ -1,56 +1,54 @@
-import { createSignal } from "../signals/createSignal";
+import { createSignal } from '../signals/createSignal.js';
 
-export function createPathFrequencyDetector({
+export function createPathFrequencyDetector(options = {}) {
+  const {
     bus,
-    threshold = 10,
-    windowMs = 60_000 // 1 minuto
-  }) {
-    if (!bus) {
-      throw new Error('pathFrequencyDetector requires a signal bus');
+    threshold = 10,      // cuántas veces
+    windowMs = 10_000    // en cuánto tiempo
+  } = options;
+
+  // Estado interno
+  const hits = new Map();
+
+  return function pathFrequencyDetector(event) {
+    if (!event || event.meta.ignored) return;
+
+    const { path, ip } = event.request;
+    const now = Date.now();
+
+    const key = `${ip}:${path}`;
+
+    if (!hits.has(key)) {
+      hits.set(key, []);
     }
 
-    const paths = new Map();
+    const timestamps = hits.get(key);
 
-    return function pathFrecuencyDetector(event) {
-        if (!event || event.meta.ignored) return;
+    // Agregamos el hit actual
+    timestamps.push(now);
 
-        const { path } = event.request;
-        const now = Date.now();
+    // Limpiamos hits fuera de la ventana
+    const cutoff = now - windowMs;
+    while (timestamps.length && timestamps[0] < cutoff) {
+      timestamps.shift();
+    }
 
-        const record = paths.get(path);
-
-        if (!record) {
-            paths.set(path, {
-                count: 1,
-                firstSeen: now
-            });
-            return;
-        }
-
-        //si se sale de la ventana, reiniciamos
-        if (now - record.firstSeen > windowMs) {
-            path.set(path, {
-                count: 1,
-                firstSeen: now
-            });
-            return;
-        }
-
-        record.count += 1;
-
-        if (record.count === threshold) {
-            const signal = createSignal({
-                type: 'path-frequency',
-                category: 'path-probing',
-                severity: 'medium',
-                event,
-                meta: {
-                    path,
-                    count: record.count,
-                    windowMs
-                }
-            });
-            bus.emit(signal);
-        }
-    };
+    // ¿Superó el umbral?
+    if (timestamps.length >= threshold) {
+      bus.emit(
+        createSignal({
+          type: 'path-frequency',
+          level: 'medium',
+          source: 'pathFrequencyDetector',
+          event,
+          data: {
+            path,
+            ip,
+            count: timestamps.length,
+            windowMs
+          }
+        })
+      );
+    }
+  };
 }

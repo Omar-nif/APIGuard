@@ -1,32 +1,29 @@
-export function createLogThreatAction({ bus, level = 'warn' }) {
-    if (!bus) {
-        throw new Error('logThreatAction requires a signal bus');
-    }
-
-    bus.on('signal', signal => {
-        if (signal.type !== 'path-probing') return;
-
-        const {
-            source,
-            severity,
-            meta
-        } = signal;
-
-        const message = '[SECURITY} Path probing detected';
-
-        const payload = {
-            severity,
-            source,
-            reason: meta.reason,
-            notFoundCount: meta.notFoundCount,
-            repeatedPaths: meta.repeatedPaths,
-            windowMs: meta.windowMs
-        };
-
-        if (typeof console[level] === 'function') {
-            console[level](message,payload);
-        } else {
-            console.warn(message, payload);
-        }
-    });
-}
+export function createLogThreatAction(options = {}) {
+    const {
+      prefix = '[APIGUARD][THREAT]'
+    } = options;
+  
+    return function logThreatAction(signal) {
+      if (!signal || !signal.type.startsWith('threat.')) return;
+  
+      const {
+        type,
+        level,
+        source,
+        data,
+        event
+      } = signal;
+  
+      console.log(`
+  ${prefix}
+  Type: ${type}
+  Level: ${level}
+  Source: ${source}
+  IP: ${data?.ip}
+  Path: ${event?.request?.path}
+  Signals: ${JSON.stringify(data?.signals)}
+  Time: ${new Date().toISOString()}
+  `);
+    };
+  }
+  
