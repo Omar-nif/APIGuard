@@ -1,0 +1,20 @@
+---------------------------------------------------------------------------
+¡Hay un choque de nombres! * createSignal espera un objeto event 
+(que contenga event.request.ip, etc.).
+
+Si el detector le manda un objeto llamado context en lugar de event, 
+createSignal intentará leer event.request.ip y dará un error porque 
+event no existe.
+
+---------------------------------------------------------------------
+el bus espera una señal mientras que los detectores mandan dos por lo 
+que puede ser que el bus solo reciba un texto.
+--------------------------------------------------------------------------
+Si quieres que funcione como sugiere el código de createSignal, tu función generateId debería ser así:
+JavaScript
+
+// Una versión que acepta un prefijo (como 'sig' o 'req')
+export function generateId(prefix = 'id') {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+---------------------------------------------------------------------------

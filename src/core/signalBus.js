@@ -25,3 +25,7 @@ export function createSignalBus() {
         emit
     };
 }
+
+/*Nota: el bus espera una señal mientras que los detectores mandan dos por lo 
+que puede ser que el bus solo reciba un texto  
+*/
