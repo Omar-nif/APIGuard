@@ -1,5 +1,5 @@
-import { createSignalBus } from './signals/bus.js';
-
+//import { createSignalBus } from './signals/bus.js';
+import { createSignalBus } from './signalBus.js';
 // Detectores
 import { createNotFoundDetector } from '../detectors/notFoundDetector.js';
 //import { createNotFoundDetector } from './detectors/notFoundDetector.js';

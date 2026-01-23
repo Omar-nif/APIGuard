@@ -9,6 +9,7 @@ export function createSignalBus() {
     }
 
     function emit(signal) {
+        console.log('[BUS EMIT]', signal.type);
         if (!signal || typeof signal.type !== 'string') return;
 
         for (const analyzer of analyzers) {

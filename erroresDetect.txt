@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
-
+/
 ¡Hay un choque de nombres! * createSignal espera un objeto event 
 (que contenga event.request.ip, etc.).
 
@@ -8,7 +8,7 @@ createSignal intentará leer event.request.ip y dará un error porque
 event no existe.
 
 ---------------------------------------------------------------------
-
+/
 el bus espera una señal mientras que los detectores mandan dos por lo 
 que puede ser que el bus solo reciba un texto.
 
@@ -23,7 +23,7 @@ export function generateId(prefix = 'id') {
 }
 
 ---------------------------------------------------------------------------
-
+/
 1. En el notFoundDetector.js (que vimos antes): Tú enviabas la señal con el tipo: 'not-found'.
 
 2. En este pathProbingAnalyzer.js: El switch está esperando el tipo: 'path.not_found'.

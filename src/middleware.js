@@ -6,7 +6,8 @@ export default function createApiguard(options = {}) {
     log = true,
     slowThreshold = null,
     ignorePaths = [],
-    onRequest = null
+    onRequest = null,
+    core = null
   } = options;
 
   return function apiGuardMiddleware(req, res, next) {
@@ -28,12 +29,15 @@ export default function createApiguard(options = {}) {
           ignored
         });
 
+        if (core && typeof core.process === 'function') {
+          core.process(requestEvent);
+        }
+
         // Hook público
         if (typeof onRequest === 'function') {
           onRequest(requestEvent);
         }
 
-        // Log por defecto
         if (log && !ignored) {
           console.log('[APIGUARD]', requestEvent);
         }
