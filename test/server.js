@@ -1,8 +1,12 @@
 import express from 'express';
 import createApiguard from '../src/middleware.js';
+//import { createApiguardCore } from '../src/core/apiguardCore.js';
+import { createApiguardCore } from '../src/core/apiguardCore.js'
 import { createSlowRequestDetector } from '../src/detectors/slowRequest.js';
 
 const app = express();
+
+const apiguardCore = createApiguardCore();
 
 const slowDetector = createSlowRequestDetector({
   onSlow(event) {
@@ -15,7 +19,8 @@ const slowDetector = createSlowRequestDetector({
 app.use(
   createApiguard({
     slowThreshold: 500,
-    onRequest: slowDetector
+    onRequest: slowDetector,
+    core: apiguardCore    // AQUÍ
   })
 );
 
