@@ -38,17 +38,18 @@ export function createPathEntropyDetector({
     if (entropy < threshold) return;
 
     bus.emit(
-      'signal',
       createSignal({
-        type: 'path-entropy',
+        type: 'path.entropy',
+        level: 'low', // NO severity
         source: 'pathEntropyDetector',
-        severity: 'low',
-        meta: {
+        event, // obligatorio
+        data: {
           path,
           entropy,
           threshold
         }
       })
     );
+    
   };
 }

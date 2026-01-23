@@ -6,7 +6,7 @@ export function createPathProbingAnalyzer(options = {}) {
     windowMs = 30_000,
     minSignals = 1
   } = options;
-
+  console.log('[ANALYZER RECEIVED]', signal.type, signal.event?.request?.ip);
   const state = new Map();
 
   function getState(ip) {

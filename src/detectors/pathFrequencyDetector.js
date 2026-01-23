@@ -37,10 +37,10 @@ export function createPathFrequencyDetector(options = {}) {
     if (timestamps.length >= threshold) {
       bus.emit(
         createSignal({
-          type: 'path-frequency',
+          type: 'path.frequency',
           level: 'medium',
           source: 'pathFrequencyDetector',
-          event,
+          event, // obligatorio
           data: {
             path,
             ip,
@@ -49,6 +49,7 @@ export function createPathFrequencyDetector(options = {}) {
           }
         })
       );
+      
     }
   };
 }

@@ -9,6 +9,7 @@ event.request.path
 
 import { createSignal } from '../signals/createSignal.js';
 
+
 export function createNotFoundDetector({ bus }) {
   if (!bus) {
     throw new Error('notFoundDetector requires a signal bus');
@@ -22,17 +23,18 @@ export function createNotFoundDetector({ bus }) {
     if (response.statusCode !== 404) return;
 
     bus.emit(
-      'signal',
       createSignal({
-        type: 'not-found',
+        type: 'path.not_found',
+        level: 'low',
         source: 'notFoundDetector',
-        context: {
-          ip: request.ip,
-          path: request.path,
-          method: request.method
+        event,
+        data: {
+          path: event.request.path,
+          statusCode: event.response.statusCode
         }
       })
     );
+    
     console.log(
       '[NOT FOUND CHECK]',
       event.response.statusCode,

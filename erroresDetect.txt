@@ -1,4 +1,5 @@
 ---------------------------------------------------------------------------
+
 ¡Hay un choque de nombres! * createSignal espera un objeto event 
 (que contenga event.request.ip, etc.).
 
@@ -7,14 +8,48 @@ createSignal intentará leer event.request.ip y dará un error porque
 event no existe.
 
 ---------------------------------------------------------------------
+
 el bus espera una señal mientras que los detectores mandan dos por lo 
 que puede ser que el bus solo reciba un texto.
+
 --------------------------------------------------------------------------
-Si quieres que funcione como sugiere el código de createSignal, tu función generateId debería ser así:
-JavaScript
+
+Si quieres que funcione como sugiere el código de createSignal, tu función generateId debería 
+ser así:
 
 // Una versión que acepta un prefijo (como 'sig' o 'req')
 export function generateId(prefix = 'id') {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
+
 ---------------------------------------------------------------------------
+
+1. En el notFoundDetector.js (que vimos antes): Tú enviabas la señal con el tipo: 'not-found'.
+
+2. En este pathProbingAnalyzer.js: El switch está esperando el tipo: 'path.not_found'.
+
+¡No coinciden! El detector grita "not-found", pero el analizador está sordo a ese grito 
+porque él solo busca "path.not_found". Por eso el contador nunca sube y nunca se llega al minSignals.
+
+----------------------------------------------------------------------------
+
+console.log('[ANALYZER]', signal.type, signal.event.request.path);
+
+Este log es tu mejor amigo para debuguear. Si ves que este mensaje aparece en 
+tu terminal, significa que el Bus está funcionando correctamente y le está 
+entregando las señales al analizador. Si no aparece, el problema está "atrás", 
+en la conexión entre el detector y el bus.
+
+
+-------------------
+
+contrato: 
+
+// Signal contract:
+// {
+//   type: string,
+//   source: string,
+//   event: RequestEvent,
+//   level?: 'low'|'medium'|'high',
+//   data?: object
+// }
