@@ -28,7 +28,7 @@ export function createApiguardCore() {
 // ---------------------------------------------------------------------------------------
 
   // ---------------- Registro de actions (escucha amenazas) ------------------------------
-  bus.registerAnalyzer(
+  bus.registerAction(
     createLogThreatAction()
   );
 //----------------------------------------------------------------------------------------
