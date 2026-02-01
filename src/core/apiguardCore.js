@@ -1,39 +1,46 @@
-//import { createSignalBus } from './signals/bus.js';
 import { createSignalBus } from './signalBus.js';
-// Detectores
-import { createNotFoundDetector } from '../detectors/notFoundDetector.js';
-//import { createNotFoundDetector } from './detectors/notFoundDetector.js';
-import { createPathFrequencyDetector } from '../detectors/pathFrequencyDetector.js';
-//import { createPathFrequencyDetector } from './detectors/pathFrequencyDetector.js';
-import { createPathEntropyDetector } from '../detectors/pathEntropyDetector.js';
-//import { createPathEntropyDetector } from './detectors/pathEntropyDetector.js';
 
-// Analyzer
-//import { createPathProbingAnalyzer } from './analyzers/pathProbingAnalyzer.js';
+// ------------------------ Detectores -----------------------------------------
+import { createNotFoundDetector } from '../detectors/notFoundDetector.js';
+import { createPathFrequencyDetector } from '../detectors/pathFrequencyDetector.js';
+import { createPathEntropyDetector } from '../detectors/pathEntropyDetector.js';
+
+import { crateAuthFailedDetector } from '../detectors/authFailedDetector.js';
+//-----------------------------------------------------------------------------
+
+// ------------------------- Analozadores --------------------------------------
 import { createPathProbingAnalyzer } from '../analyzers/pathProbingAnalyzer.js';
-// Action
-//import { createLogThreatAction } from './actions/logThreatAction.js';
+import { createAuthBruteForceAnalyzer } from '../analyzers/authBruteForceAnalyzer.js';
+//--------------------------------------------------------------------------------
+
+// --------------------------- Actions ----------------------------------------------
 import { createLogThreatAction } from '../actions/logThreatAction.js';
+//---------------------------------------------------------------------------------
 
 export function createApiguardCore() {
   const bus = createSignalBus();
 
-  // Analyzer (escucha señales)
+  // ------------------------ Registro de analizadores ----------------------------------
   bus.registerAnalyzer(
-    createPathProbingAnalyzer({ bus })
+    createPathProbingAnalyzer({ bus }),
+    createAuthBruteForceAnalyzer({ bus })
   );
+// ---------------------------------------------------------------------------------------
 
-  // Action (escucha amenazas)
+  // ---------------- Registro de actions (escucha amenazas) ------------------------------
   bus.registerAnalyzer(
     createLogThreatAction()
   );
+//----------------------------------------------------------------------------------------
 
-  // Detectores (leen eventos)
+  // --------------- Registro de detectores (leen eventos) -------------------------------
   const detectors = [
     createNotFoundDetector({ bus }),
     createPathFrequencyDetector({ bus }),
-    createPathEntropyDetector({ bus })
+    createPathEntropyDetector({ bus }),
+    crateAuthFailedDetector({ bus })
   ];
+//----------------------------------------------------------------------------------------
 
   bus.registerAnalyzer(signal => {
     console.log('[SIGNAL BUS]', signal.type, signal.data);
