@@ -5,7 +5,7 @@ import { createNotFoundDetector } from '../detectors/notFoundDetector.js';
 import { createPathFrequencyDetector } from '../detectors/pathFrequencyDetector.js';
 import { createPathEntropyDetector } from '../detectors/pathEntropyDetector.js';
 
-import { crateAuthFailedDetector } from '../detectors/authFailedDetector.js';
+import { createAuthFailedDetector } from '../detectors/authFailedDetector.js';
 //-----------------------------------------------------------------------------
 
 // ------------------------- Analozadores --------------------------------------
@@ -38,7 +38,7 @@ export function createApiguardCore() {
     createNotFoundDetector({ bus }),
     createPathFrequencyDetector({ bus }),
     createPathEntropyDetector({ bus }),
-    crateAuthFailedDetector({ bus })
+    createAuthFailedDetector({ bus })
   ];
 //----------------------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 import { createSignal } from '../signals/createSignal.js';
 
-export function crateAuthFailedDetector({ bus, authPaths = ['/login'] }) {
+export function createAuthFailedDetector({ bus, authPaths = ['/login'] }) {
   if (!bus) throw new Error('authFailedDetector requires bus');
 
   return function authFailedDetector(event) {

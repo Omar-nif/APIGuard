@@ -49,6 +49,13 @@ export function createAuthBruteForceAnalyzer(options = {}) {
         const data = getState(ip);
 
         data.attempts++;
+        console.log(
+            '[BRUTE STATE]',
+            ip,
+            'attempts:',
+            data.attempts
+          );
+          
         data.lastSeen = Date.now();
 
         evaluate(ip, data, signal);
