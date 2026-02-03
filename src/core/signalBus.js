@@ -1,6 +1,9 @@
-export function createSignalBus() {
+export function createSignalBus({ logger }) {
     const analyzers = new Set();
     const actions = new Set();
+
+    // Seguridad: Si no pasan logger, creamos uno básico para que no rompa
+    const log = logger || { debug: () => {}, threat: () => {} };
 
     function registerAnalyzer(analyzer) {
         if (typeof analyzer !== 'function') {
@@ -19,7 +22,7 @@ export function createSignalBus() {
     function emit(signal) {
         if (!signal || typeof signal.type !== 'string') return;
 
-        console.log('[BUS EMIT]', signal.type);
+        log.debug('[BUS EMIT]', signal.type);
 
         // Analizadores reciben TODAS las señales
         for (const analyzer of analyzers) {
@@ -32,14 +35,17 @@ export function createSignalBus() {
 
         // Las acciones SOLO escuchan amenazas
         if (signal.type === 'THREAT_DETECTED') {
+            logger.threat(
+              '[THREAT]',
+              signal.threatType,
+              signal.data
+            );
+      
             for (const action of actions) {
-                try {
-                    action(signal);
-                } catch (err) {
-                    // Igual: nunca romper
-                }
+              action(signal);
             }
-        }
+          }
+        
     }
 
     return {
@@ -51,7 +57,28 @@ export function createSignalBus() {
 
 
 
-/* V1
+/* 
+
+din logger:
+
+if (signal.type === 'THREAT_DETECTED') {
+            for (const action of actions) {
+                try {
+                    action(signal);
+                } catch (err) {
+                    // Igual: nunca romper
+                }
+            }
+        }
+for (const action of actions) {
+                try {
+                    action(signal);
+                } catch (err) {
+                    // Igual: nunca romper
+                }
+            }
+
+V1
 export function createSignalBus() {
     const analyzers = new Set();
 

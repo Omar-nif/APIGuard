@@ -37,10 +37,10 @@ export default function createApiguard(options = {}) {
         if (typeof onRequest === 'function') {
           onRequest(requestEvent);
         }
-        
+        /*
         if (log && !ignored) {
           console.log('[APIGUARD]', requestEvent);
-        }
+        }*/
       });
 
       next();

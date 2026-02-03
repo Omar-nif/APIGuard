@@ -8,7 +8,7 @@ import { createPathEntropyDetector } from '../detectors/pathEntropyDetector.js';
 import { createAuthFailedDetector } from '../detectors/authFailedDetector.js';
 //-----------------------------------------------------------------------------
 
-// ------------------------- Analozadores --------------------------------------
+// ------------------------- Analizadores --------------------------------------
 import { createPathProbingAnalyzer } from '../analyzers/pathProbingAnalyzer.js';
 import { createAuthBruteForceAnalyzer } from '../analyzers/authBruteForceAnalyzer.js';
 //--------------------------------------------------------------------------------
@@ -17,8 +17,14 @@ import { createAuthBruteForceAnalyzer } from '../analyzers/authBruteForceAnalyze
 import { createLogThreatAction } from '../actions/logThreatAction.js';
 //---------------------------------------------------------------------------------
 
+// --------------------------- logger -----------------------------------------------
+import { createLogger, LOG_LEVELS } from './logger.js';
+//-----------------------------------------------------------------------------------
+
 export function createApiguardCore() {
-  const bus = createSignalBus();
+
+  const logger = createLogger(LOG_LEVELS.DEBUG);
+  const bus = createSignalBus({ logger });
 
   // ------------------------ Registro de analizadores ----------------------------------
   bus.registerAnalyzer(

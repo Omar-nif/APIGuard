@@ -11,9 +11,9 @@ const apiguardCore = createApiguardCore();
 // ----------- Simulacion de detector (nada importante para el funcionamiento)
 const slowDetector = createSlowRequestDetector({
   onSlow(event) {
-    console.log('SLOW REQUEST DETECTED');
-    console.log(event.request.method, event.request.path);
-    console.log(`Duration: ${event.performance.duration}ms`);
+    //console.log('SLOW REQUEST DETECTED');
+    //console.log(event.request.method, event.request.path);
+    //console.log(`Duration: ${event.performance.duration}ms`);
   }
 });
 //---------------------------------------------------------------------
@@ -55,6 +55,6 @@ app.post('/login', express.json(), (req, res) => {
 
 // ------------------------- Servidor de express ------------------
 app.listen(3000, () => {
-  console.log('Servidor en http://localhost:3000');
+  console.log('Servidor en http://localhost:3000 \n');
 });
 //-----------------------------------------------------------------
