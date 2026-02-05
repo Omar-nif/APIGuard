@@ -5,7 +5,7 @@ export function createPathProbingAnalyzer(options = {}) {
     bus,
     logger,
     windowMs = 30_000,
-    minSignals = 1
+    minSignals = 2
   } = options;
 
   const state = new Map();

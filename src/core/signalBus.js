@@ -20,19 +20,23 @@ export function createSignalBus({ logger } = {}) {
   
     function emit(signal) {
       if (!signal || typeof signal.type !== 'string') return;
-  
+    
       log.debug('[BUS EMIT]', signal.type);
       
+      // 1. Los analizadores SIEMPRE escuchan todo para recolectar datos
       for (const analyzer of analyzers) {
         try {
           analyzer(signal);
         } catch (_) {}
       }
-  
-      for (const action of actions) {
-        try {
-          action(signal);
-        } catch (_) {}
+    
+      // 2. Las acciones SOLO escuchan señales que sean AMENAZAS
+      if (signal.type.startsWith('threat.')) {
+        for (const action of actions) {
+          try {
+            action(signal);
+          } catch (_) {}
+        }
       }
     }
   

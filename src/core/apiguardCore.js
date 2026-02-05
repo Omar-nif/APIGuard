@@ -24,13 +24,13 @@ import { createLogger, LOG_LEVELS } from './logger.js';
 
 export function createApiguardCore() {
 
-  const logger = createLogger(LOG_LEVELS.DEBUG); // Modos: SILENT, THREAT, DEBUG
+  const logger = createLogger(LOG_LEVELS.THREAT); // Modos: SILENT, THREAT, DEBUG
   const bus = createSignalBus({ logger });
 
   // ------------------------ Registro de analizadores ----------------------------------
   bus.registerAnalyzer(
-    createPathProbingAnalyzer({ bus }),
-    createAuthBruteForceAnalyzer({ bus })
+    createPathProbingAnalyzer({ bus, logger }),
+    createAuthBruteForceAnalyzer({ bus, logger })
   );
 // ---------------------------------------------------------------------------------------
 
