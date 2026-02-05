@@ -37,6 +37,6 @@ export function createAuthFailedDetector({ bus, authPaths = ['/login'] }) {
       })
     );
 
-    console.log('[AUTH FAILED]', request.ip, request.path);
+    //console.log('[AUTH FAILED]', request.ip, request.path);
   };
 }

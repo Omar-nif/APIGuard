@@ -22,7 +22,7 @@ export function createSignalBus({ logger } = {}) {
       if (!signal || typeof signal.type !== 'string') return;
   
       log.debug('[BUS EMIT]', signal.type);
-  
+      
       for (const analyzer of analyzers) {
         try {
           analyzer(signal);

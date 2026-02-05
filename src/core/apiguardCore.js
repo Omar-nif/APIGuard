@@ -24,7 +24,7 @@ import { createLogger, LOG_LEVELS } from './logger.js';
 
 export function createApiguardCore() {
 
-  const logger = createLogger(LOG_LEVELS.DEBUG);
+  const logger = createLogger(LOG_LEVELS.THREAT); // Modos: SILENT, THREAT, DEBUG
   const bus = createSignalBus({ logger });
 
   // ------------------------ Registro de analizadores ----------------------------------
@@ -36,7 +36,7 @@ export function createApiguardCore() {
 
   // ---------------- Registro de actions (escucha amenazas) ------------------------------
   bus.registerAction(
-    createLogThreatAction()
+    createLogThreatAction({ logger })
   );
 //----------------------------------------------------------------------------------------
 

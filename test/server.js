@@ -36,5 +36,6 @@ app.post('/login', express.json(), (req, res) => {
 // ---------------- Servidor -------------------------------
 app.listen(3000, () => {
   console.log('Servidor en http://localhost:3000');
+  console.log('\n');
 });
 // ---------------------------------------------------------

@@ -35,11 +35,11 @@ export function createNotFoundDetector({ bus }) {
       })
     );
     
-    console.log(
+    /*console.log(
       '[NOT FOUND CHECK]',
       event.response.statusCode,
       event.request.path
-    );
+    );*/
     
   };
 }
