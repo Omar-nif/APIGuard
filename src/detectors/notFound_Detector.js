@@ -1,11 +1,3 @@
-/*
-Del RequestEvent solo trabajaremos con:
-
-event.response.statusCode
-event.meta.ignored
-event.request.path
-
-*/
 
 import { createSignal } from '../signals/createSignal.js';
 
