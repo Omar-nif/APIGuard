@@ -3,7 +3,7 @@ import { createSignal } from '../signals/createSignal.js';
 export function createPathFrequencyDetector(options = {}) {
   const {
     bus,
-    threshold = 10,      // cuántas veces
+    threshold = 1,      // cuántas veces
     windowMs = 10_000    // en cuánto tiempo
   } = options;
 

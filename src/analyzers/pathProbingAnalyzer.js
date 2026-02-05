@@ -5,7 +5,7 @@ export function createPathProbingAnalyzer(options = {}) {
     bus,
     logger,
     windowMs = 30_000,
-    minSignals = 1
+    minSignals = 2
   } = options;
 
   const state = new Map();
@@ -69,6 +69,9 @@ export function createPathProbingAnalyzer(options = {}) {
   return function pathProbingAnalyzer(signal) {
     if (!signal || !signal.event) return;
 
+    // ESTA LÍNEA TE DIRÁ QUÉ ESTÁ LLEGANDO REALMENTE
+  console.log('--- ANALIZADOR RECIBIÓ:', signal.type);
+
     const ip = signal.event.request.ip;
 
     logger.debug(
@@ -84,7 +87,7 @@ export function createPathProbingAnalyzer(options = {}) {
       case 'path.not_found':
         data.notFound++;
         break;
-      case 'path.frequency':
+      case 'path.diversity':
         data.frequency++;
         break;
       case 'path.entropy':
