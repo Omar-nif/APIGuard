@@ -1,11 +1,12 @@
+
 import { createSignalBus } from './signalBus.js';
 
 // ------------------------ Detectores -----------------------------------------
-import { createNotFoundDetector } from '../detectors/notFoundDetector.js';
-import { createPathFrequencyDetector } from '../detectors/pathFrequencyDetector.js';
-import { createPathEntropyDetector } from '../detectors/pathEntropyDetector.js';
+import { createNotFoundDetector } from '../detectors/notFound_Detector.js';
+import { createPathFrequencyDetector } from '../detectors/pathFrequency_Detector.js';
+import { createPathEntropyDetector } from '../detectors/pathEntropy_Detector.js';
 
-import { createAuthFailedDetector } from '../detectors/authFailedDetector.js';
+import { createAuthFailedDetector } from '../detectors/authFailed_Detector.js';
 //-----------------------------------------------------------------------------
 
 // ------------------------- Analizadores --------------------------------------

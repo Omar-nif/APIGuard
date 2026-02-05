@@ -58,3 +58,108 @@ export function createRequestEvent({
       }
     };
   }
+
+  /* ---------- Posible modificacion --------------------------
+  export function createRequestEvent({
+  id,
+  startTime,
+  duration,
+  req,
+  res,
+  slowThreshold = null,
+  ignored = false,
+  error = null
+}) {
+  const statusCode = res?.statusCode ?? 0;
+  const now = Date.now();
+
+  return {
+    id,
+    timestamp: now,
+
+    time: {
+      start: startTime,
+      end: startTime + duration,
+      duration
+    },
+
+    request: {
+      method: req.method,
+      path: req.path,
+      originalUrl: req.originalUrl,
+      ip: req.ip ?? null,
+      userAgent: req.headers['user-agent'] ?? null
+    },
+
+    response: {
+      statusCode,
+      ok: statusCode >= 200 && statusCode < 300
+    },
+
+    performance: {
+      slow:
+        slowThreshold !== null && duration >= slowThreshold,
+      threshold: slowThreshold
+    },
+
+    meta: {
+      ignored,
+      error
+    }
+  };
+}
+
+Notas:
+
+1. timestamp vs startTime (detalle semántico)
+
+Ahora :
+
+timestamp: startTime
+
+Eso puede confundir luego porque timestamp suele interpretarse como 
+“evento emitido” y startTime es “inicio de request”
+
+Recomendación:
+Guárdarlos ambos, con nombres claros.
+
+time: {
+  start: startTime,
+  end: startTime + duration
+}
+
+Y si quieres un timestamp plano:
+
+timestamp: Date.now()
+
+2. success basado solo en statusCode (ojo aquí)
+
+success: statusCode < 400
+
+Esto está bien por ahora, pero deja una puerta rara pues un 401 o 403 
+no es éxito, pero sí es información útil y detectores de auth suelen querer
+fallos explícitos.
+
+Recomendación:
+No decidas “éxito” tan fuerte aquí.
+Mejor:
+
+ok: statusCode >= 200 && statusCode < 300 y deja que los detectores decidan si
+algo es “malicioso”.
+
+3. req.ip puede mentir (pero está bien dejarlo)
+
+Express a veces:
+
+usa x-forwarded-for
+
+depende de trust proxy
+
+Sugerencia:
+No lo compliques ahora, pero deja el campo listo:
+
+ip: req.ip ?? null
+
+Está bien como esta, solo nota mental para el futuro.
+
+*/

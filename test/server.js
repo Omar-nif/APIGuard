@@ -1,34 +1,18 @@
 import express from 'express';
-import createApiguard from '../src/middleware.js';
-//import { createApiguardCore } from '../src/core/apiguardCore.js';
-import { createApiguardCore } from '../src/core/apiguardCore.js'
-import { createSlowRequestDetector } from '../src/detectors/slowRequest.js';
+import apiguard from '../src/index.js'; //  SOLO la API pública
 
 const app = express();
-// ------------------------ Instancia de APIGuard  -----------------------
-const apiguardCore = createApiguardCore();
 
-// ----------- Simulacion de detector (nada importante para el funcionamiento)
-const slowDetector = createSlowRequestDetector({
-  onSlow(event) {
-    //console.log('SLOW REQUEST DETECTED');
-    //console.log(event.request.method, event.request.path);
-    //console.log(`Duration: ${event.performance.duration}ms`);
-  }
-});
-//---------------------------------------------------------------------
-
-// -------- Instancia para prueba de slowRequest (Nada importante) ------
+// ------------------------ APIGuard ------------------------
 app.use(
-  createApiguard({
-    slowThreshold: 500,
-    onRequest: slowDetector,
-    core: apiguardCore  
+  apiguard({
+    // aquí luego irán opciones reales:
+    // logLevel, thresholds, enableDetectors, etc.
   })
 );
-//-----------------------------------------------------------------------
+// ---------------------------------------------------------
 
-// ---------------- Endpoints de prueba ---------------------------
+// ---------------- Endpoints de prueba ---------------------
 app.get('/fast', (req, res) => {
   res.send('fast');
 });
@@ -37,24 +21,20 @@ app.get('/slow', async (req, res) => {
   await new Promise(r => setTimeout(r, 800));
   res.send('slow');
 });
-// -----------------------------------------------------------------
-
-// -------------- Endpoints de prueba para "brute force" -----------
 
 app.post('/login', express.json(), (req, res) => {
-  const { ussername, password } = req.body || {};
+  const { username, password } = req.body || {};
 
-  // Simulacion
-  if(ussername === 'admin' && password === '1234') {
-    return res.status(200).json({ succes: true });
+  if (username === 'admin' && password === '1234') {
+    return res.status(200).json({ success: true });
   }
 
-  return res.status(401).json({ succes: false });
+  return res.status(401).json({ success: false });
 });
-//-------------------------------------------------------------------
+// ---------------------------------------------------------
 
-// ------------------------- Servidor de express ------------------
+// ---------------- Servidor -------------------------------
 app.listen(3000, () => {
-  console.log('Servidor en http://localhost:3000 \n');
+  console.log('Servidor en http://localhost:3000');
 });
-//-----------------------------------------------------------------
+// ---------------------------------------------------------

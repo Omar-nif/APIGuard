@@ -1,11 +1,9 @@
-//import { generateId } from '../utils/generateRequestId.js';
- import generateId from '../utils/generateRequestId.js';
+import generateId from '../utils/generateRequestId.js';
 
 export function createSignal({
   type,
   source,
   event,
-  level = 'low',
   data = {}
 }) {
   if (!type) throw new Error('Signal type is required');
@@ -15,13 +13,13 @@ export function createSignal({
   return {
     id: generateId('sig'),
     type,
-    level,
     source,
     timestamp: Date.now(),
-    event,   // CLAVE
-    data     // CLAVE
+    event, // contexto completo (read-only por convención)
+    data
   };
 }
+
 
 /*
 import { request } from 'express';

@@ -1,0 +1,170 @@
+Documentacion de APIGUARD
+
+Flujo del programa:
+
+Request HTTP
+ → middleware
+   → requestEvent
+     → detectors
+       → signals
+         → analyzers
+           → threat
+             → actions
+
+-------------------------------------------------------------------
+Archivos importantes
+
+index.js
+
+Es la cara pública de la librería. El puente entre el usuario y el sistema
+interno.
+
+¿que hace?
+Exporta una función clara y simple (createApiguard)
+Arma internamente:
+- El core
+- El middleware
+- Oculta la complejidad interna
+- Define la API que el usuario consume
+
+¿que no hace?
+- No analiza señales
+- No detecta ataques
+- No conoce detectores
+- No procesa eventos
+- No tiene lógica de seguridad
+
+Ejemplo de uso:
+
+import apiguard from 'apiguard';
+app.use(apiguard({ /* options */ }));
+
+----------------------------------------------------------------
+
+middleware.js (Observador del mundo real)
+
+Es el sensor que observa Express y el único módulo que:
+- toca req
+- toca res
+Y sabe que Express existe
+
+¿Qué hace?
+
+- Escucha el ciclo de vida de una request
+- Mide duración
+- Genera un requestEvent
+- Llama a core.process(event)
+- Aplica reglas simples (ignored paths, hooks públicos)
+
+¿Qué NO hace?
+
+- No decide si hay ataque
+- No emite señales
+- No guarda estado
+- No sabe qué es una amenaza
+
+-------------------------------------------------------------------
+
+requestEvent (Contrato de datos)
+
+Es un objeto normalizado, estable y limpio. Es el idioma común entre todo
+el sistema. ("Es el formulario que llena middleware.js")
+
+¿Qué hace?
+
+Reduce req y res a datos útiles y da estructura clara a:
+- request
+- response
+- performance
+- meta
+Evita acoplar detectores a Express
+
+¿Qué NO hace?
+- No contiene lógica
+- No detecta nada
+- No muta estado
+- No conoce el bus
+
+-----------------------------------------------------------------------
+
+Detectores (detectors/*) Ej: notFoundDetector
+
+Son filtros especializados que observan eventos crudos.
+
+¿Qué hacen?
+- Escuchan requestEvent
+- Se preguntan: “¿Esto me sirve a mí?”
+- Emiten señales pequeñas y atómicas
+
+Ej:
+"path.not_found"
+"path.frequency"
+"path.entropy"
+
+¿Qué NO hacen?
+- No deciden amenazas
+- No combinan señales
+- No guardan lógica compleja
+- No disparan acciones
+
+--------------------------------------------------------------------------
+
+Signal (createSignal.js)
+
+Es un evento interno del sistema. No es HTTP ni es Express, es lenguaje Apiguard.
+
+¿Qué hace?
+Envuelve:
+- qué pasó ---------------- (type)
+- quién lo detectó -------- (source)
+- contexto ---------------- (event)
+- datos útiles ------------ (data)
+- Garantiza forma consistente
+
+¿Qué NO hace?
+- No ejecuta lógica
+- No conoce al bus
+- No dispara nada por sí solo
+
+------------------------------------------------------------------------------
+
+signalBus.js (Sistema nervioso)
+
+Es el canal de comunicación interno ya que nada se habla directamente.
+
+¿Qué hace?
+Recibe señales y las distribuye a:
+- analyzers
+- actions (solo amenazas)
+- Protege el sistema de crashes
+- Centraliza el flujo
+
+¿Qué NO hace?
+- No analiza
+- No detecta
+- No decide
+- No crea señales
+
+-------------------------------------------------------------------------------
+
+Analyzers (EJ. pathProbingAnalyzer)
+
+Son los cerebros del sistema.
+
+¿Qué hacen?
+- Escuchan múltiples señales
+- Mantienen estado temporal
+- Correlacionan eventos
+
+Deciden:
+“Esto ya es una amenaza” Y entonces emiten un signal de threat.
+
+¿Qué NO hacen? 
+- No observan requests directamente
+- No tocan Express
+- No ejecutan acciones
+
+Regla: Los analyzers piensan, no actúan.
+
+-----------------------------------------------------------------------------
+

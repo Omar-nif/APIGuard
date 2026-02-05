@@ -1,61 +1,48 @@
-export function createSignalBus({ logger }) {
+export function createSignalBus({ logger } = {}) {
     const analyzers = new Set();
     const actions = new Set();
-
-    // Seguridad: Si no pasan logger, creamos uno básico para que no rompa
-    const log = logger || { debug: () => {}, threat: () => {} };
-
+  
+    const log = logger || { debug: () => {} };
+  
     function registerAnalyzer(analyzer) {
-        if (typeof analyzer !== 'function') {
-            throw new Error('Analyzer must be a function');
-        }
-        analyzers.add(analyzer);
+      if (typeof analyzer !== 'function') {
+        throw new Error('Analyzer must be a function');
+      }
+      analyzers.add(analyzer);
     }
-
+  
     function registerAction(action) {
-        if (typeof action !== 'function') {
-            throw new Error('Action must be a function');
-        }
-        actions.add(action);
+      if (typeof action !== 'function') {
+        throw new Error('Action must be a function');
+      }
+      actions.add(action);
     }
-
+  
     function emit(signal) {
-        if (!signal || typeof signal.type !== 'string') return;
-
-        log.debug('[BUS EMIT]', signal.type);
-
-        // Analizadores reciben TODAS las señales
-        for (const analyzer of analyzers) {
-            try {
-                analyzer(signal);
-            } catch (err) {
-                // El bus jamás debe romper el flujo
-            }
-        }
-
-        // Las acciones SOLO escuchan amenazas
-        if (signal.type === 'THREAT_DETECTED') {
-            logger.threat(
-              '[THREAT]',
-              signal.threatType,
-              signal.data
-            );
-      
-            for (const action of actions) {
-              action(signal);
-            }
-          }
-        
+      if (!signal || typeof signal.type !== 'string') return;
+  
+      log.debug('[BUS EMIT]', signal.type);
+  
+      for (const analyzer of analyzers) {
+        try {
+          analyzer(signal);
+        } catch (_) {}
+      }
+  
+      for (const action of actions) {
+        try {
+          action(signal);
+        } catch (_) {}
+      }
     }
-
+  
     return {
-        registerAnalyzer,
-        registerAction,
-        emit
+      registerAnalyzer,
+      registerAction,
+      emit
     };
-}
-
-
+  }
+  
 
 /* 
 
