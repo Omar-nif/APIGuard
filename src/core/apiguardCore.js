@@ -3,8 +3,9 @@ import { createSignalBus } from './signalBus.js';
 
 // ------------------------ Detectores -----------------------------------------
 import { createNotFoundDetector } from '../detectors/notFound_Detector.js';
-import { createPathFrequencyDetector } from '../detectors/pathFrequency_Detector.js';
+//import { createPathFrequencyDetector } from '../detectors/pathFrequency_Detector.js';
 import { createPathEntropyDetector } from '../detectors/pathEntropy_Detector.js';
+import { createPathDiversityDetector } from '../detectors/createPathDiversity_Detector.js';
 
 import { createAuthFailedDetector } from '../detectors/authFailed_Detector.js';
 //-----------------------------------------------------------------------------
@@ -27,6 +28,15 @@ export function createApiguardCore() {
   const logger = createLogger(LOG_LEVELS.THREAT); // Modos: SILENT, THREAT, DEBUG
   const bus = createSignalBus({ logger });
 
+  //  --------------- Registro de detectores (leen eventos) -------------------------------
+  const detectors = [
+    createNotFoundDetector({ bus }),
+    createPathDiversityDetector({ bus }),
+    createPathEntropyDetector({ bus }),
+    createAuthFailedDetector({ bus })
+  ];
+//----------------------------------------------------------------------------------------
+
   // ------------------------ Registro de analizadores ----------------------------------
   bus.registerAnalyzer(
     createPathProbingAnalyzer({ bus, logger }),
@@ -38,15 +48,6 @@ export function createApiguardCore() {
   bus.registerAction(
     createLogThreatAction({ logger })
   );
-//----------------------------------------------------------------------------------------
-
-  // --------------- Registro de detectores (leen eventos) -------------------------------
-  const detectors = [
-    createNotFoundDetector({ bus }),
-    createPathFrequencyDetector({ bus }),
-    createPathEntropyDetector({ bus }),
-    createAuthFailedDetector({ bus })
-  ];
 //----------------------------------------------------------------------------------------
 
   /*bus.registerAnalyzer(signal => {
