@@ -6,26 +6,29 @@ import { createNotFoundDetector } from '../detectors/notFound_Detector.js';
 //import { createPathFrequencyDetector } from '../detectors/pathFrequency_Detector.js';
 import { createPathEntropyDetector } from '../detectors/pathEntropy_Detector.js';
 import { createPathDiversityDetector } from '../detectors/createPathDiversity_Detector.js';
-
 import { createAuthFailedDetector } from '../detectors/authFailed_Detector.js';
 //-----------------------------------------------------------------------------
-
 // ------------------------- Analizadores --------------------------------------
 import { createPathProbingAnalyzer } from '../analyzers/pathProbingAnalyzer.js';
 import { createAuthBruteForceAnalyzer } from '../analyzers/authBruteForceAnalyzer.js';
 //--------------------------------------------------------------------------------
-
 // --------------------------- Actions ----------------------------------------------
 import { createLogThreatAction } from '../actions/logThreatAction.js';
 //---------------------------------------------------------------------------------
-
 // --------------------------- logger -----------------------------------------------
 import { createLogger, LOG_LEVELS } from './logger.js';
 //-----------------------------------------------------------------------------------
+// ----------------------- Configuraciones ---------------------------------------
+//import { defaultConfig } from '../config/defaultConfig.js';
+// ---------------------------------------------------------------------------------
+export function createApiguardCore(config) {
 
-export function createApiguardCore() {
+  //const logger = createLogger(LOG_LEVELS.THREAT); // Modos: SILENT, THREAT, DEBUG
+  const logger = createLogger({ 
+    mode: config.logger.mode, 
+    levelMap: config.logger._levelMap 
+  });
 
-  const logger = createLogger(LOG_LEVELS.THREAT); // Modos: SILENT, THREAT, DEBUG
   const bus = createSignalBus({ logger });
 
   //  --------------- Registro de detectores (leen eventos) -------------------------------
