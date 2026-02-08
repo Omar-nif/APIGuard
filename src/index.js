@@ -11,7 +11,10 @@ export default function apiguard(userConfig = {}) {
 
   // 3. Crear middleware
   return createApiguardMiddleware({
-    core
+    config,
+    onRequest(event) {
+      core.process(event);
+    }
   });
 }
 

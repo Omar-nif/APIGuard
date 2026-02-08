@@ -3,7 +3,7 @@ import { LOG_LEVELS } from '../core/logger.js';
 export const defaultConfig = {
   logger: {
     // Nivel por defecto: solo amenazas
-    mode: 'threat',
+    mode: 'threat', // silent | threat | debug
 
     // Mapeo interno (el usuario NO ve esto)
     _levelMap: {
@@ -19,6 +19,11 @@ export const defaultConfig = {
       windowMs: 30_000,
       minSignals: 2
     }
+  },
+
+  http: {
+    ignorePaths: [],
+    slowThreshold: null
   },
 
   security: {
