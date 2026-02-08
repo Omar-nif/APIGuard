@@ -16,7 +16,8 @@ import { createAuthBruteForceAnalyzer } from '../analyzers/authBruteForceAnalyze
 import { createLogThreatAction } from '../actions/logThreatAction.js';
 //---------------------------------------------------------------------------------
 // --------------------------- logger -----------------------------------------------
-import { createLogger, LOG_LEVELS } from './logger.js';
+// import { createLogger, LOG_LEVELS } from './logger.js';
+import { createLogger} from './logger.js';
 //-----------------------------------------------------------------------------------
 // ----------------------- Configuraciones ---------------------------------------
 //import { defaultConfig } from '../config/defaultConfig.js';
@@ -25,8 +26,7 @@ export function createApiguardCore(config) {
 
   //const logger = createLogger(LOG_LEVELS.THREAT); // Modos: SILENT, THREAT, DEBUG
   const logger = createLogger({ 
-    mode: config.logger.mode, 
-    levelMap: config.logger._levelMap 
+    mode: config.logger.mode
   });
 
   const bus = createSignalBus({ logger });
