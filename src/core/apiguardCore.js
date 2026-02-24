@@ -3,7 +3,7 @@ import { createLogger } from './logger.js';
 
 // Threats
 import { registerPathProbingThreat } from './threats/pathProbingThreat.js';
-//import { registerAuthBruteForceThreat } from './threats/authBruteForceThreat.js';
+import { registerAuthBruteForceThreat } from './threats/authBruteForceThreat.js';
 
 export function createApiguardCore(config) {
   const logger = createLogger({
@@ -17,9 +17,9 @@ export function createApiguardCore(config) {
     registerPathProbingThreat({ bus, logger, config });
   }
 
-  /*if (config.security?.authBruteForce?.enabled) {
+  if (config.security?.bruteForce?.enabled) {
     registerAuthBruteForceThreat({ bus, logger, config });
-  }*/
+  }
 
   return {
     process(event) {
