@@ -1,65 +1,33 @@
-
 import { createSignalBus } from './signalBus.js';
+import { createLogger } from './logger.js';
 
-// ------------------------ Detectores -----------------------------------------
-import { createNotFoundDetector } from '../detectors/notFound_Detector.js';
-//import { createPathFrequencyDetector } from '../detectors/pathFrequency_Detector.js';
-import { createPathEntropyDetector } from '../detectors/pathEntropy_Detector.js';
-import { createPathDiversityDetector } from '../detectors/createPathDiversity_Detector.js';
-import { createAuthFailedDetector } from '../detectors/authFailed_Detector.js';
-//-----------------------------------------------------------------------------
-// ------------------------- Analizadores --------------------------------------
-import { createPathProbingAnalyzer } from '../analyzers/pathProbingAnalyzer.js';
-import { createAuthBruteForceAnalyzer } from '../analyzers/authBruteForceAnalyzer.js';
-//--------------------------------------------------------------------------------
-// --------------------------- Actions ----------------------------------------------
-import { createLogThreatAction } from '../actions/logThreatAction.js';
-//---------------------------------------------------------------------------------
-// --------------------------- logger -----------------------------------------------
-// import { createLogger, LOG_LEVELS } from './logger.js';
-import { createLogger} from './logger.js';
-//-----------------------------------------------------------------------------------
-// ----------------------- Configuraciones ---------------------------------------
-//import { defaultConfig } from '../config/defaultConfig.js';
-// ---------------------------------------------------------------------------------
+// Threats
+import { registerPathProbingThreat } from './threats/pathProbingThreat.js';
+//import { registerAuthBruteForceThreat } from './threats/authBruteForceThreat.js';
+
 export function createApiguardCore(config) {
-
-  //const logger = createLogger(LOG_LEVELS.THREAT); // Modos: SILENT, THREAT, DEBUG
-  const logger = createLogger({ 
+  const logger = createLogger({
     mode: config.logger.mode
   });
 
   const bus = createSignalBus({ logger });
 
-  //  --------------- Registro de detectores (leen eventos) -------------------------------
-  const detectors = [
-    createNotFoundDetector({ bus }),
-    createPathDiversityDetector({ bus }),
-    createPathEntropyDetector({ bus }),
-    createAuthFailedDetector({ bus })
-  ];
-//----------------------------------------------------------------------------------------
+  // Threat Registry (explícito por ahora)
+  if (config.security?.pathProbing?.enabled) {
+    registerPathProbingThreat({ bus, logger, config });
+  }
 
-  // ------------------------ Registro de analizadores ----------------------------------
-  bus.registerAnalyzer(
-    createPathProbingAnalyzer({ bus, logger }),
-    createAuthBruteForceAnalyzer({ bus, logger })
-  );
-// ---------------------------------------------------------------------------------------
+  /*if (config.security?.authBruteForce?.enabled) {
+    registerAuthBruteForceThreat({ bus, logger, config });
+  }*/
 
-  // ---------------- Registro de actions (escucha amenazas) ------------------------------
-  bus.registerAction(
-    createLogThreatAction({ logger })
-  );
-//----------------------------------------------------------------------------------------
-
-  /*bus.registerAnalyzer(signal => {
-    console.log('[SIGNAL BUS]', signal.type, signal.data);
-  });*/
-  
   return {
     process(event) {
-      detectors.forEach(detector => detector(event));
+      bus.emit({
+        type: 'request',
+        event,
+        source: 'apiguardCore'
+      });
     }
   };
 }

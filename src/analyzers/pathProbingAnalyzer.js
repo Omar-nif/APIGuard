@@ -14,7 +14,7 @@ export function createPathProbingAnalyzer(options = {}) {
     if (!state.has(ip)) {
       state.set(ip, {
         notFound: 0,
-        frequency: 0,
+        diversity: 0,
         entropy: 0,
         lastSeen: Date.now()
       });
@@ -34,7 +34,7 @@ export function createPathProbingAnalyzer(options = {}) {
   function evaluate(ip, data, signal) {
     const hits =
       (data.notFound > 0) +
-      (data.frequency > 0) +
+      (data.diversity > 0) +
       (data.entropy > 0);
 
     if (hits >= minSignals) {
@@ -47,7 +47,7 @@ export function createPathProbingAnalyzer(options = {}) {
           ip,
           signals: {
             notFound: data.notFound,
-            frequency: data.frequency,
+            diversity: data.diversity,
             entropy: data.entropy
           }
         }
@@ -67,7 +67,7 @@ export function createPathProbingAnalyzer(options = {}) {
   }
 
   return function pathProbingAnalyzer(signal) {
-    if (!signal || !signal.event) return;
+    if (!signal || !signal.type?.startsWith('path.')) return;
 
     // ESTA LÍNEA TE DIRÁ QUÉ ESTÁ LLEGANDO REALMENTE
   console.log('--- ANALIZADOR RECIBIÓ:', signal.type);
@@ -88,7 +88,7 @@ export function createPathProbingAnalyzer(options = {}) {
         data.notFound++;
         break;
       case 'path.diversity':
-        data.frequency++;
+        data.diversity++;
         break;
       case 'path.entropy':
         data.entropy++;
