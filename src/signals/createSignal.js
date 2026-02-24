@@ -2,6 +2,7 @@ import generateId from '../utils/generateRequestId.js';
 
 export function createSignal({
   type,
+  level,
   source,
   event,
   data = {}
@@ -13,6 +14,7 @@ export function createSignal({
   return {
     id: generateId('sig'),
     type,
+    level,
     source,
     timestamp: Date.now(),
     event, // contexto completo (read-only por convención)

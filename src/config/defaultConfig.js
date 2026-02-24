@@ -8,7 +8,14 @@ export const defaultConfig = {
       enabled: true
     },
 
-    sensitivePaths: []
+    bruteForce: {
+      enabled: true,
+      authPaths: ['/login'],
+      methods: ['POST'],
+      failureStatusCodes: [401, 403],
+      threshold: 5,
+      windowMS: 60_000
+    }
   },
 
   http: {
@@ -16,7 +23,6 @@ export const defaultConfig = {
     slowThreshold: null
   }
 };
-
 /*
 import { LOG_LEVELS } from '../core/logger.js';
 

@@ -6,57 +6,18 @@ export function createLogThreatAction({ logger, prefix = '[APIGUARD][THREAT]' } 
   return function logThreatAction(signal) {
     if (!signal || !signal.type.startsWith('threat.')) return;
 
-    const {
+    const { type, level, source, data, event } = signal;
+
+    const logPayload = {
       type,
       level,
       source,
-      data,
-      event
-    } = signal;
+      ip: data?.ip,
+      path: event?.request?.path,
+      time: new Date().toISOString(),
+      ...data // ← aquí está la clave
+    };
 
-    logger.threat(
-      prefix,
-      {
-        type,
-        level,
-        source,
-        ip: data?.ip,
-        path: event?.request?.path,
-        signals: data?.signals,
-        time: new Date().toISOString()
-      }
-    );
+    logger.threat(prefix, logPayload);
   };
 }
-
-
-/* ------------------ V1 (sin logger) ------------------------
-export function createLogThreatAction(options = {}) {
-    const {
-      prefix = '[APIGUARD][THREAT]'
-    } = options;
-  
-    return function logThreatAction(signal) {
-      if (!signal || !signal.type.startsWith('threat.')) return;
-  
-      const {
-        type,
-        level,
-        source,
-        data,
-        event
-      } = signal;
-  
-      console.log(`
-  ${prefix}
-  Type: ${type}
-  Level: ${level}
-  Source: ${source}
-  IP: ${data?.ip}
-  Path: ${event?.request?.path}
-  Signals: ${JSON.stringify(data?.signals)}
-  Time: ${new Date().toISOString()}
-  `);
-    };
-  }
-  */
