@@ -3,21 +3,27 @@ import { createSignal } from '../signals/createSignal.js';
 export function createPathDiversityDetector(options = {}) {
   const {
     bus,
-    threshold = 8,        // rutas distintas
-    windowMs = 10_000     // ventana de tiempo
+    threshold = 8,
+    windowMs = 10_000
   } = options;
 
   if (!bus) {
     throw new Error('pathDiversityDetector requires a signal bus');
   }
 
-  // Map<ip, Map<path, timestamp>>
   const state = new Map();
 
-  return function pathDiversityDetector(event) {
-    if (!event || event.meta.ignored) return;
+  return function pathDiversityDetector(signal) {
+    if (signal.type !== 'request') return;
 
-    const { ip, path } = event.request;
+    const event = signal.event;
+
+    if (event.meta?.ignored) return;
+
+    const ip = event.request?.ip;
+    const path = event.request?.path;
+    if (!ip || !path) return;
+
     const now = Date.now();
 
     if (!state.has(ip)) {
@@ -26,10 +32,8 @@ export function createPathDiversityDetector(options = {}) {
 
     const paths = state.get(ip);
 
-    // Registrar path con timestamp
     paths.set(path, now);
 
-    // Limpiar paths fuera de la ventana
     const cutoff = now - windowMs;
     for (const [p, ts] of paths.entries()) {
       if (ts < cutoff) {
@@ -37,7 +41,6 @@ export function createPathDiversityDetector(options = {}) {
       }
     }
 
-    // ¿Superó el umbral?
     if (paths.size >= threshold) {
       bus.emit(
         createSignal({
@@ -53,7 +56,6 @@ export function createPathDiversityDetector(options = {}) {
         })
       );
 
-      // Reset para evitar spam
       state.delete(ip);
     }
   };

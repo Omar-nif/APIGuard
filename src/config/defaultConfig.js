@@ -3,21 +3,17 @@ export const defaultConfig = {
     mode: 'threat' // silent | threat | debug
   },
 
-  detectors: {
+  security: {
     pathProbing: {
-      enabled: true,
-      windowMs: 30_000,
-      minSignals: 2
-    }
+      enabled: true
+    },
+
+    sensitivePaths: []
   },
 
   http: {
     ignorePaths: [],
     slowThreshold: null
-  },
-
-  security: {
-    sensitivePaths: []
   }
 };
 
