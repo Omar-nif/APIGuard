@@ -7,13 +7,17 @@ export function createNotFoundDetector({ bus }) {
     throw new Error('notFoundDetector requires a signal bus');
   }
 
-  return function notFoundDetector(event) {
-    if (!event || event.meta.ignored) return;
-
-    const { response, request } = event;
-
+  return function notFoundDetector(signal) {
+    if (!signal || signal.type !== 'request') return;
+  
+    const event = signal.event;
+  
+    if (event.meta?.ignored) return;
+  
+    const { response } = event;
+  
     if (response.statusCode !== 404) return;
-
+  
     bus.emit(
       createSignal({
         type: 'path.not_found',
@@ -22,16 +26,9 @@ export function createNotFoundDetector({ bus }) {
         event,
         data: {
           path: event.request.path,
-          statusCode: event.response.statusCode
+          statusCode: response.statusCode
         }
       })
     );
-    
-    /*console.log(
-      '[NOT FOUND CHECK]',
-      event.response.statusCode,
-      event.request.path
-    );*/
-    
   };
 }

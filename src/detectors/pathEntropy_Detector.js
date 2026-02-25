@@ -27,22 +27,26 @@ export function createPathEntropyDetector({
     throw new Error('pathEntropyDetector requires a signal bus');
   }
 
-  return function pathEntropyDetector(event) {
-    if (!event || event.meta.ignored) return;
-
+  return function pathEntropyDetector(signal) {
+    if (signal.type !== 'request') return;
+  
+    const event = signal.event;
+  
+    if (event.meta?.ignored) return;
+  
     const path = event.request?.path;
     if (!path) return;
-
+  
     const entropy = calculateEntropy(path);
-
+  
     if (entropy < threshold) return;
-
+  
     bus.emit(
       createSignal({
         type: 'path.entropy',
-        level: 'low', // NO severity
+        level: 'low',
         source: 'pathEntropyDetector',
-        event, // obligatorio
+        event,
         data: {
           path,
           entropy,
@@ -50,6 +54,5 @@ export function createPathEntropyDetector({
         }
       })
     );
-    
   };
 }
