@@ -6,9 +6,9 @@ Es una librería de seguridad para aplicaciones Node.js con Express, distribuida
 - Miguel Lopez
 
 ## Tecnologías
-- Node.js (npm)
-- Express (middleware)
 - JavaScript
+- Node.js 
+- Express 
 
 ## Instrucciones para clonar y correr el proyecto
 ### Clonar
@@ -23,10 +23,18 @@ npm install
 ```
 ## Ejecutar
 ```bash
-npm run dev
+cd .\test\
+node server.js
+```
+## Ejecutar prueba
+```bash
+cd .\test\ //en otra terminal
+node brutheForze_test.js
 ```
 ## Configuración de ramas
 
 main: rama principal
 
 feature/*: ramas de desarrollo por funcionalidad
+fix/*: arreglar alguna funcionalidad
+test/*: pruebas a algun modulo
