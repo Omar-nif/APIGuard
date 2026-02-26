@@ -36,5 +36,7 @@ node brutheForze_test.js
 main: rama principal
 
 feature/*: ramas de desarrollo por funcionalidad
+
 fix/*: arreglar alguna funcionalidad
+
 test/*: pruebas a algun modulo
