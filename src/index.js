@@ -1,4 +1,4 @@
-import createApiguardMiddleware from './middleware.js';
+import createApiguardMiddleware from './middleware/middleware.js';
 import { createApiguardCore } from './core/apiguardCore.js';
 import { loadConfig } from './config/loadConfig.js';
 
@@ -12,12 +12,12 @@ export default function apiguard(userConfig = {}) {
   // 3. Crear middleware
   return createApiguardMiddleware({
     config,
+    decisionStore: core.decisionStore,
     onRequest(event) {
       core.process(event);
     }
   });
 }
-
 
 /* --------------- V1 ---------------------------------------
 import createApiguardMiddleware from './middleware.js';

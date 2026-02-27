@@ -13,7 +13,7 @@ export const defaultConfig = {
       authPaths: ['/login'],
       methods: ['POST'],
       failureStatusCodes: [401, 403],
-      threshold: 5,
+      threshold: 3,
       windowMS: 60_000
     }
   },
