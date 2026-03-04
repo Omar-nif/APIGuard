@@ -6,8 +6,8 @@ import { registerendpointEnumerationThreat } from './threats/endpointEnumeration
 import { registerAuthBruteForceThreat } from './threats/authBruteForceThreat.js';
 
 // Decisions
-import { createDecisionStore } from './decision/createDecisionStore.js';
-import { createDecisionEngine } from './decision/createDecisionEngine.js';
+import { createDecisionStore } from './decision/decisionStore.js';
+import { createDecisionEngine } from './decision/decisionEngine.js';
 
 export function createApiguardCore(config) {
   const logger = createLogger({

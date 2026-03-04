@@ -2,10 +2,10 @@ import { createNotFoundDetector } from '../../detectors/notFound_Detector.js';
 import { createPathEntropyDetector } from '../../detectors/pathEntropy_Detector.js';
 import { createPathDiversityDetector } from '../../detectors/pathDiversity_Detector.js';
 
-import { createPathProbingAnalyzer } from '../../analyzers/pathProbingAnalyzer.js';
+import { createEndpointEnumerationAnalyzer } from '../../analyzers/endpointEnumeration.js';
 import { createLogThreatAction } from '../../actions/logThreatAction.js';
 
-export function registerendpointEnumerationThreat({ bus, logger, config }) {
+export function registerEndpointEnumerationThreat({ bus, logger, config }) {
   const threatConfig = config.security.endpointEnumeration || {};
 
   const { windowMs, minSignals } = threatConfig;
@@ -20,7 +20,7 @@ export function registerendpointEnumerationThreat({ bus, logger, config }) {
   bus.registerAnalyzer(diversityDetector);
 
   // Analyzer
-  const analyzer = createPathProbingAnalyzer({
+  const analyzer = createEndpointEnumerationAnalyzer({
     bus,
     logger,
     windowMs,

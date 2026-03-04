@@ -1,6 +1,6 @@
 import { createSignal } from '../signals/createSignal.js';
 
-export function createPathProbingAnalyzer(options = {}) {
+export function createEndpointEnumerationAnalyzer(options = {}) {
   const {
     bus,
     logger,
