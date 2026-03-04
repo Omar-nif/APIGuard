@@ -5,8 +5,8 @@ import { createPathDiversityDetector } from '../../detectors/pathDiversity_Detec
 import { createPathProbingAnalyzer } from '../../analyzers/pathProbingAnalyzer.js';
 import { createLogThreatAction } from '../../actions/logThreatAction.js';
 
-export function registerPathProbingThreat({ bus, logger, config }) {
-  const threatConfig = config.security.pathProbing || {};
+export function registerendpointEnumerationThreat({ bus, logger, config }) {
+  const threatConfig = config.security.endpointEnumeration || {};
 
   const { windowMs, minSignals } = threatConfig;
 

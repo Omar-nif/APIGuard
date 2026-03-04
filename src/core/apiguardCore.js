@@ -2,7 +2,7 @@ import { createSignalBus } from './signalBus.js';
 import { createLogger } from './logger.js';
 
 // Threats
-import { registerPathProbingThreat } from './threats/pathProbingThreat.js';
+import { registerendpointEnumerationThreat } from './threats/endpointEnumerationThreat.js';
 import { registerAuthBruteForceThreat } from './threats/authBruteForceThreat.js';
 
 // Decisions
@@ -31,8 +31,8 @@ export function createApiguardCore(config) {
 
   //============== THREAT REGISTRY =======================
 
-  if (config.security?.pathProbing?.enabled) {
-    registerPathProbingThreat({ bus, logger, config });
+  if (config.security?.endpointEnumeration?.enabled) {
+    registerendpointEnumerationThreat({ bus, logger, config });
   }
 
   if (config?.security?.detectors?.bruteForce.enabled) {
