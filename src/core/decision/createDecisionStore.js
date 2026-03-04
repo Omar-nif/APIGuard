@@ -1,8 +1,10 @@
+import crypto from 'crypto';
+
 export function createDecisionStore({ cleanupInterval = 30_000 } = {}) {
   const store = new Map();
 
   function register(decision) {
-    const key = buildKey(decision);
+    const key = buildKey(decision.match);
 
     store.set(key, {
       ...decision,
@@ -10,29 +12,46 @@ export function createDecisionStore({ cleanupInterval = 30_000 } = {}) {
     });
   }
 
-  function match({ ip, path }) {
-    const now = Date.now();
+const ACTION_PRIORITY = {
+  block: 3,
+  rateLimit: 2,
+  challenge: 1
+};
 
-    for (const [key, decision] of store.entries()) {
-      if (decision.expiresAt <= now) {
-        store.delete(key);
-        continue;
-      }
+function match(requestContext) {
+  const now = Date.now();
+  let bestDecision = null;
+  let highestSpecificity = -1;
+  let highestPriority = -1;
 
-      if (decision.scope === 'ip' && decision.ip === ip) {
-        return decision;
-      }
-
-      if (
-        decision.scope === 'ip+path' &&
-        decision.ip === ip &&
-        decision.path === path
-      ) {
-        return decision;
-      }
+  for (const [key, decision] of store.entries()) {
+    if (decision.expiresAt <= now) {
+      store.delete(key);
+      continue;
     }
 
-    return null;
+    if (isMatch(decision.match, requestContext)) {
+      const specificity = Object.keys(decision.match).length;
+      const priority = ACTION_PRIORITY[decision.action] ?? 0;
+
+      if (
+        specificity > highestSpecificity ||
+        (specificity === highestSpecificity && priority > highestPriority)
+      ) {
+        highestSpecificity = specificity;
+        highestPriority = priority;
+        bestDecision = decision;
+      }
+    }
+  }
+
+  return bestDecision;
+}
+
+  function isMatch(matchCriteria, requestContext) {
+    return Object.entries(matchCriteria).every(
+      ([key, value]) => requestContext[key] === value
+    );
   }
 
   function cleanup() {
@@ -57,14 +76,10 @@ export function createDecisionStore({ cleanupInterval = 30_000 } = {}) {
   };
 }
 
-function buildKey(decision) {
-  if (decision.scope === 'ip') {
-    return `ip:${decision.ip}`;
-  }
+function buildKey(match) {
+  const parts = Object.entries(match)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => `${key}:${value}`);
 
-  if (decision.scope === 'ip+path') {
-    return `ip:${decision.ip}:path:${decision.path}`;
-  }
-
-  return crypto.randomUUID();
+  return parts.length > 0 ? parts.join('|') : crypto.randomUUID();
 }
