@@ -31,7 +31,7 @@ export function createApiguardCore(config) {
 
   //============== THREAT REGISTRY =======================
 
-  if (config.security?.endpointEnumeration?.enabled) {
+  if (config.security?.detectors?.endpointEnumeration?.enabled) {
     registerEndpointEnumerationThreat({ bus, logger, config });
   }
 
