@@ -2,7 +2,7 @@ import { createSignalBus } from './signalBus.js';
 import { createLogger } from './logger.js';
 
 // Threats
-import { registerendpointEnumerationThreat } from './threats/endpointEnumerationThreat.js';
+import { registerEndpointEnumerationThreat } from './threats/endpointEnumerationThreat.js';
 import { registerAuthBruteForceThreat } from './threats/authBruteForceThreat.js';
 
 // Decisions
@@ -32,7 +32,7 @@ export function createApiguardCore(config) {
   //============== THREAT REGISTRY =======================
 
   if (config.security?.endpointEnumeration?.enabled) {
-    registerendpointEnumerationThreat({ bus, logger, config });
+    registerEndpointEnumerationThreat({ bus, logger, config });
   }
 
   if (config?.security?.detectors?.bruteForce.enabled) {
