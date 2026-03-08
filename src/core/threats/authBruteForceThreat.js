@@ -2,7 +2,7 @@ import { createAuthFailedDetector } from "../../detectors/authFailed_Detector.js
 import { createAuthBruteForceAnalyzer } from "../../analyzers/authBruteForceAnalyzer.js";
 
 export function registerAuthBruteForceThreat({ bus, logger, config }) {
-    const bruteForce = config?.security?.bruteForce;
+    const bruteForce = config?.security?.detectors?.bruteForce;
   
     if (!bruteForce?.enabled) {
       return;

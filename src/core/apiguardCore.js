@@ -2,12 +2,12 @@ import { createSignalBus } from './signalBus.js';
 import { createLogger } from './logger.js';
 
 // Threats
-import { registerPathProbingThreat } from './threats/pathProbingThreat.js';
+import { registerEndpointEnumerationThreat } from './threats/endpointEnumerationThreat.js';
 import { registerAuthBruteForceThreat } from './threats/authBruteForceThreat.js';
 
 // Decisions
-import { createDecisionStore } from './decision/createDecisionStore.js';
-import { createDecisionEngine } from './decision/createDecisionEngine.js';
+import { createDecisionStore } from './decision/decisionStore.js';
+import { createDecisionEngine } from './decision/decisionEngine.js';
 
 export function createApiguardCore(config) {
   const logger = createLogger({
@@ -29,18 +29,16 @@ export function createApiguardCore(config) {
     config
   });
 
-  // ==============================
-  // THREAT REGISTRY
-  // ==============================
+  //============== THREAT REGISTRY =======================
 
-  if (config.security?.pathProbing?.enabled) {
-    registerPathProbingThreat({ bus, logger, config });
+  if (config.security?.detectors?.endpointEnumeration?.enabled) {
+    registerEndpointEnumerationThreat({ bus, logger, config });
   }
 
-  if (config.security?.bruteForce?.enabled) {
+  if (config?.security?.detectors?.bruteForce.enabled) {
     registerAuthBruteForceThreat({ bus, logger, config });
   }
-
+//==========================================================
   return {
     process(event) {
       bus.emit({
@@ -50,43 +48,6 @@ export function createApiguardCore(config) {
       });
     },
 
-    decisionStore // 🔥 necesario para el middleware
+    decisionStore // necesario para el middleware
   };
 }
-
-/*
-import { createSignalBus } from './signalBus.js';
-import { createLogger } from './logger.js';
-
-// Threats
-import { registerPathProbingThreat } from './threats/pathProbingThreat.js';
-import { registerAuthBruteForceThreat } from './threats/authBruteForceThreat.js';
-
-export function createApiguardCore(config) {
-  const logger = createLogger({
-    mode: config.logger.mode
-  });
-
-  const bus = createSignalBus({ logger });
-
-  // Threat Registry (explícito por ahora)
-  if (config.security?.pathProbing?.enabled) {
-    registerPathProbingThreat({ bus, logger, config });
-  }
-
-  if (config.security?.bruteForce?.enabled) {
-    registerAuthBruteForceThreat({ bus, logger, config });
-  }
-
-  return {
-    process(event) {
-      bus.emit({
-        type: 'request',
-        event,
-        source: 'apiguardCore'
-      });
-    }
-  };
-}
-
-*/

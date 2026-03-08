@@ -4,17 +4,39 @@ export const defaultConfig = {
   },
 
   security: {
-    pathProbing: {
-      enabled: true
+    detectors: {
+      endpointEnumeration: {
+        enabled: true,
+        windowMS: 60_000,
+        threshold: 10
+      },
+
+      bruteForce: {
+        enabled: true,
+        authPaths: ['/login'],
+        methods: ['POST'],
+        failureStatusCodes: [401, 403],
+        threshold: 3,
+        windowMS: 60_000
+      }
     },
 
-    bruteForce: {
-      enabled: true,
-      authPaths: ['/login'],
-      methods: ['POST'],
-      failureStatusCodes: [401, 403],
-      threshold: 3,
-      windowMS: 60_000
+    policies: {
+      'threat.auth_bruteforce': {
+        action: 'block',
+        scope: 'ip',
+        duration: 300_000
+      },
+
+      'threat.endpoint_enumeration': {
+        action: 'delay',
+        scope: 'ip',
+        duration: 120_000,
+        delay: {
+          min: 500,
+          max: 4000
+        }
+      }
     }
   },
 
@@ -23,37 +45,3 @@ export const defaultConfig = {
     slowThreshold: null
   }
 };
-/*
-import { LOG_LEVELS } from '../core/logger.js';
-
-export const defaultConfig = {
-  logger: {
-    // Nivel por defecto: solo amenazas
-    mode: 'threat', // silent | threat | debug
-
-    // Mapeo interno (el usuario NO ve esto)
-    _levelMap: {
-      silent: LOG_LEVELS.SILENT,
-      threat: LOG_LEVELS.THREAT,
-      debug: LOG_LEVELS.DEBUG
-    }
-  },
-
-  detectors: {
-    pathProbing: {
-      enabled: true,
-      windowMs: 30_000,
-      minSignals: 2
-    }
-  },
-
-  http: {
-    ignorePaths: [],
-    slowThreshold: null
-  },
-
-  security: {
-    sensitivePaths: []
-  }
-};
-*/

@@ -25,7 +25,10 @@ export default function createApiguardMiddleware({
     const id = generateRequestId();
     const ignored = ignorePaths.includes(req.path);
 
-    //  PRE-CHECK (antes de continuar)
+    /*---------------------------------------------------------------------
+      PRE-CHECK: se consulta la decisionStore antes de procesar la request 
+      para bloquear lo antes posible si ya hay una decision que aplica
+    */
     const decision = decisionStore.match({
       ip: req.ip,
       path: req.path
@@ -39,11 +42,15 @@ export default function createApiguardMiddleware({
         next
       });
     }
-
-    // POST ANALYSIS 
+//-------------------------------------------------------------------------
+    /* POST ANALYSIS: se crea el evento de request al finalizar 
+    la respuesta para tener toda la información disponible */
     res.on('finish', () => {
       const duration = Date.now() - startTime;
-
+//-------------------------------------------------------------------------
+/*Se crea el evento de request con toda la información relevante para 
+el análisis. Se manda el evento normalizado ya que req por si solo es enorme
+*/
       const requestEvent = createRequestEvent({
         id,
         startTime,
@@ -56,7 +63,7 @@ export default function createApiguardMiddleware({
 
       onRequest(requestEvent);
     });
-
+//-------------------------------------------------------------------------
     next();
   };
 }
