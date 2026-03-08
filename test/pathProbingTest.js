@@ -95,7 +95,7 @@ function advancedProbing() {
 console.log('🚀 Iniciando simulador de Path Probing...\n');
 
 // Elegir el método que prefieras:
-testWithCurl();
-//testWithFetch();
+//testWithCurl();
+testWithFetch();
 
 console.log('\n✅ Prueba completada. Revisa los logs de tu middleware.');

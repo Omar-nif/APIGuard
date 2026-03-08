@@ -20,8 +20,6 @@ export function createSignalBus({ logger } = {}) {
   
     function emit(signal) {
       if (!signal || typeof signal.type !== 'string') return;
-    //debug
-      console.log("[BUS]", signal.type);
       
       // 1. Los analizadores SIEMPRE escuchan todo para recolectar datos
       for (const analyzer of analyzers) {

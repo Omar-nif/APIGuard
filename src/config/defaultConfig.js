@@ -29,9 +29,13 @@ export const defaultConfig = {
       },
 
       'threat.endpoint_enumeration': {
-        action: 'block',
+        action: 'delay',
         scope: 'ip',
-        duration: 120_000
+        duration: 120_000,
+        delay: {
+          min: 500,
+          max: 4000
+        }
       }
     }
   },

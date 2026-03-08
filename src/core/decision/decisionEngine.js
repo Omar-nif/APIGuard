@@ -8,24 +8,25 @@ export function createDecisionEngine({ bus, decisionStore, logger, config }) {
   function buildDecision(policy, signal) {
     const ip = signal?.data?.ip || signal?.event?.request?.ip;
     const path = signal?.data?.path || signal?.event?.request?.path;
-
+  
     if (!ip) return null;
-
+  
     const match = {};
-
+  
     if (policy.scope?.includes('ip')) {
       match.ip = ip;
     }
-
+  
     if (policy.scope?.includes('path') && path) {
       match.path = path;
     }
-
+  
     return {
       action: policy.action,
       reason: signal.type,
       duration: policy.duration,
-      match
+      match,
+      delay: policy.delay
     };
   }
 

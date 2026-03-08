@@ -12,11 +12,11 @@ export function createDecisionStore({ cleanupInterval = 30_000 } = {}) {
     });
   }
 
-const ACTION_PRIORITY = {
-  block: 3,
-  rateLimit: 2,
-  challenge: 1
-};
+  const ACTION_PRIORITY = {
+    block: 3,
+    delay: 2,
+    monitor: 1
+  };
 
 function match(requestContext) {
   const now = Date.now();
