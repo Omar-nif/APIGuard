@@ -4,6 +4,7 @@ import { createLogger } from './logger.js';
 // Threats
 import { registerEndpointEnumerationThreat } from './threats/endpointEnumerationThreat.js';
 import { registerAuthBruteForceThreat } from './threats/authBruteForceThreat.js';
+import { registerDoSThreat } from './threats/dosThreat.js';
 
 // Decisions
 import { createDecisionStore } from './decision/decisionStore.js';
@@ -35,8 +36,23 @@ export function createApiguardCore(config) {
     registerEndpointEnumerationThreat({ bus, logger, config });
   }
 
-  if (config?.security?.detectors?.bruteForce.enabled) {
+  if (config?.security?.detectors?.bruteForce?.enabled) {
     registerAuthBruteForceThreat({ bus, logger, config });
+  }
+
+  /*if (config.security?.detectors?.dos?.enabled) {
+    registerDoSThreat({ bus, logger, config });
+  }*/
+
+  /*
+  opcion 2:
+  if (config.security?.detectors?.dos) { 
+    registerDoSThreat({ bus, logger, config });
+  }
+  */
+  const dosConfig = config.security?.detectors?.dos;
+  if (dosConfig?.requestFlood?.enabled || dosConfig?.endpointFlood?.enabled) {
+    registerDoSThreat({ bus, logger, config });
   }
 //==========================================================
   return {

@@ -47,6 +47,8 @@ export default function createApiguardMiddleware({
     la respuesta para tener toda la información disponible */
     res.on('finish', () => {
       const duration = Date.now() - startTime;
+
+      //console.log('request event', req.ip, req.path);
 //-------------------------------------------------------------------------
 /*Se crea el evento de request con toda la información relevante para 
 el análisis. Se manda el evento normalizado ya que req por si solo es enorme
