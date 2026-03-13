@@ -1,5 +1,5 @@
-const TARGET = 'http://localhost:3000/';
-const TOTAL_REQUESTS = 1000;
+const TARGET = 'http://localhost:3000/fast';
+const TOTAL_REQUESTS = 10000;
 const CONCURRENCY = 1;
 
 async function attack() {

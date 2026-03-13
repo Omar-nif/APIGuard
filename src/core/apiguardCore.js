@@ -44,16 +44,16 @@ export function createApiguardCore(config) {
     registerDoSThreat({ bus, logger, config });
   }*/
 
-  /*
-  opcion 2:
+  
+  //opcion 2:
   if (config.security?.detectors?.dos) { 
     registerDoSThreat({ bus, logger, config });
   }
-  */
-  const dosConfig = config.security?.detectors?.dos;
+  
+  /*const dosConfig = config.security?.detectors?.dos;
   if (dosConfig?.requestFlood?.enabled || dosConfig?.endpointFlood?.enabled) {
     registerDoSThreat({ bus, logger, config });
-  }
+  }*/
 //==========================================================
   return {
     process(event) {

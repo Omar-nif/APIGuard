@@ -23,13 +23,13 @@ export const defaultConfig = {
       dos: {
         requestFlood: {
           enabled: true,
-          windowMs: 10_000,
-          threshold: 50,
+          windowMs: 500_000,
+          threshold: 10,
           cooldownMs: 5000
         },
 
         endpointFlood: {
-          enabled: true,
+          enabled: false,
           windowMs: 10_000,
           threshold: 50,
           cooldownMs: 5000
@@ -48,20 +48,14 @@ export const defaultConfig = {
         action: 'delay',
         scope: 'ip',
         duration: 120_000,
-        delay: {
-          min: 500,
-          max: 4000
-        }
+        delay: { min: 500, max: 4000 }
       },
 
       'threat.dos': {
         action: 'delay',
         scope: 'ip',
-        duration: 60_000,
-        delay: {
-          min: 200,
-          max: 2000
-        }
+        duration: 500_000,
+        delay: { min: 10, max: 40 }
       }
     }
   },
