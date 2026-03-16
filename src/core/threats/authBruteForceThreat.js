@@ -19,6 +19,6 @@ export function registerAuthBruteForceThreat({ bus, logger, config }) {
       config
     });
   
-    bus.registerAnalyzer(detector);
+    bus.registerDetector(detector);
     bus.registerAnalyzer(analyzer);
   }

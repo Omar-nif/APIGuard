@@ -22,6 +22,7 @@ app.get('/slow', async (req, res) => {
   res.send('slow');
 });
 
+// --------------- Prueba para fuerza bruta -----------------
 app.post('/login', express.json(), (req, res) => {
   const { username, password } = req.body || {};
 
@@ -30,6 +31,11 @@ app.post('/login', express.json(), (req, res) => {
   }
 
   return res.status(401).json({ success: false });
+});
+
+// ---------------- Prueba DoS ------------------------------
+app.get('/', (req, res) => {
+  res.send('home');
 });
 // ---------------------------------------------------------
 
