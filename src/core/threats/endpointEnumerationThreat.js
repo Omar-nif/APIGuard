@@ -15,9 +15,9 @@ export function registerEndpointEnumerationThreat({ bus, logger, config }) {
   const entropyDetector = createEndpointEntropyDetector({ bus, logger });
   const diversityDetector = createEndpointDiversityDetector({ bus, logger });
 
-  bus.registerAnalyzer(notFoundDetector);
-  bus.registerAnalyzer(entropyDetector);
-  bus.registerAnalyzer(diversityDetector);
+  bus.registerDetector(notFoundDetector);
+  bus.registerDetector(entropyDetector);
+  bus.registerDetector(diversityDetector);
 
   // Analyzer
   const analyzer = createEndpointEnumerationAnalyzer({
