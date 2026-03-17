@@ -23,49 +23,49 @@ export default function createApiguardMiddleware({
   return function apiGuardMiddleware(req, res, next) {
     const startTime = Date.now();
     const id = generateRequestId();
-    const ignored = ignorePaths.includes(req.path);
 
-    /*---------------------------------------------------------------------
-      PRE-CHECK: se consulta la decisionStore antes de procesar la request 
-      para bloquear lo antes posible si ya hay una decision que aplica
-    */
-    const decision = decisionStore.match({
-      ip: req.ip,
-      path: req.path
+    // 1. PRE-CHECK
+    const decision = decisionStore.match({ ip: req.ip, path: req.path });
+    if (decision) return applyDecision({ decision, req, res, next });
+
+    /* ---------------------------------------------------------
+       2. ANALISIS DE INTRUSIÓN (Fase: 'request')
+       --------------------------------------------------------- */
+    const immediateEvent = createRequestEvent({
+      id,
+      startTime,
+      duration: 0,
+      req,
+      res,
+      ignored: false,
+      stage: 'request' // <--- NUEVO: Marcamos la fase inicial
     });
 
-    if (decision) {
-      return applyDecision({
-        decision, 
-        req, 
-        res, 
-        next
-      });
+    onRequest(immediateEvent);
+
+    const immediateDecision = decisionStore.match({ ip: req.ip, path: req.path });
+    if (immediateDecision && immediateDecision.action === 'block') {
+        return applyDecision({ decision: immediateDecision, req, res, next });
     }
-//-------------------------------------------------------------------------
-    /* POST ANALYSIS: se crea el evento de request al finalizar 
-    la respuesta para tener toda la información disponible */
+
+    /* ---------------------------------------------------------
+       3. ANALISIS POST-RESPONSE (Fase: 'response')
+       --------------------------------------------------------- */
     res.on('finish', () => {
       const duration = Date.now() - startTime;
-
-      //console.log('request event', req.ip, req.path);
-//-------------------------------------------------------------------------
-/*Se crea el evento de request con toda la información relevante para 
-el análisis. Se manda el evento normalizado ya que req por si solo es enorme
-*/
-      const requestEvent = createRequestEvent({
+      const finalEvent = createRequestEvent({
         id,
         startTime,
         duration,
         req,
         res,
-        slowThreshold,
-        ignored
+        ignored: config.http?.ignorePaths?.includes(req.path),
+        stage: 'response' // <--- NUEVO: Marcamos la fase final
       });
 
-      onRequest(requestEvent);
+      onRequest(finalEvent); 
     });
-//-------------------------------------------------------------------------
+
     next();
   };
 }

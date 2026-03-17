@@ -1,4 +1,4 @@
-console.log("DEBUG: Decision Engine Factory Called"); // Añade esto arriba
+//console.log("DEBUG: Decision Engine Factory Called"); // Añade esto arriba
 
 export function createDecisionEngine({ bus, decisionStore, logger, config }) {
   const policies = config.security?.policies ?? {};
