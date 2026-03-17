@@ -20,6 +20,16 @@ export const defaultConfig = {
         windowMS: 60_000
       },
 
+      // --- SQL INJECTION ---
+      sqlInjection: {
+        enabled: true,
+        threshold: 3, // Puntuación acumulada necesaria para disparar la amenaza
+        checkQuery: true, // Analizar parámetros en la URL (?id=...)
+        checkBody: true,  // Analizar el cuerpo de la petición (JSON, forms)
+        // Campos que ignoraremos para evitar procesar datos sensibles
+        excludeFields: ['password', 'token', 'secret'] 
+      },
+
       dos: {
         requestFlood: {
           enabled: true,
@@ -39,8 +49,7 @@ export const defaultConfig = {
           enabled: true,
           windowMs: 60_000, 
           threshold: 5,      
-          endpoints: ['/api/reports/heavy-export', // <-- Endpoint "caro" de ejemplo
-            '/api/search', '/api/export', '/api/reports'],
+          endpoints: ['/api/reports/heavy-export', '/api/search', '/api/export', '/api/reports'],
           cooldownMs: 5000
         }
       }
@@ -60,6 +69,13 @@ export const defaultConfig = {
         delay: { min: 500, max: 4000 }
       },
 
+      // --- NUEVA POLÍTICA: SQL INJECTION ---
+      'threat.sql_injection': {
+        action: 'block', // Acción radical para una amenaza de integridad de datos
+        scope: 'ip',
+        duration: 600_000 // 10 minutos de bloqueo inicial
+      },
+
       'threat.dos': {
         action: 'delay',
         scope: 'ip',
@@ -70,8 +86,8 @@ export const defaultConfig = {
       'threat.dos.expensive_endpoint': {
         action: 'rateLimit',
         scope: 'ip',
-        duration: 120_000, // Un poco más de tiempo porque es un ataque más "caro"
-        rateLimit: { maxRequests: 2, windowMs: 10000 } // Muy restrictivo
+        duration: 120_000,
+        rateLimit: { maxRequests: 2, windowMs: 10000 }
       },
     }
   },

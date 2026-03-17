@@ -15,7 +15,7 @@ export function createDecisionStore({ cleanupInterval = 30_000 } = {}) {
    */
   function register(decision) {
     const key = buildKey(decision.match);
-    console.log("GUARDANDO EN STORE:", key, "Acción:", decision.action);
+    //console.log("GUARDANDO EN STORE:", key, "Acción:", decision.action);
     store.set(key, {
       ...decision,
       expiresAt: Date.now() + decision.duration

@@ -28,6 +28,8 @@ export function createRequestEvent({
         method: req.method,      // GET, POST, DELETE, etc.
         path: req.path,          // La ruta limpia (ej: /login)
         originalUrl: req.originalUrl, // La ruta con parámetros (ej: /login?user=1)
+        query: req.query || {}, // <--- 
+        body: req.body || {},   // <--- 
         ip: req.ip || null,      // Dirección IP del que hace la petición
         userAgent: req.headers['user-agent'] || null // Qué navegador o bot está usando
       },

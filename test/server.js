@@ -3,14 +3,16 @@ import apiguard from '../src/index.js'; //  SOLO la API pública
 
 const app = express();
 
-// ------------------------ APIGuard ------------------------
+// 1. PRIMERO: Los Parsers Globales
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true }));
+
+// 2. SEGUNDO: APIGuard (Ahora sí tiene datos que leer)
 app.use(
   apiguard({
-    // aquí luego irán opciones reales:
-    // logLevel, thresholds, enableDetectors, etc.
+    // opciones...
   })
 );
-// ---------------------------------------------------------
 
 // ---------------- Endpoints de prueba ---------------------
 app.get('/fast', (req, res) => {
@@ -33,6 +35,19 @@ app.post('/login', express.json(), (req, res) => {
   return res.status(401).json({ success: false });
 });
 
+// ---------------- Prueba para SQLi ----------------------
+app.get('/api/users', (req, res) => {
+  const { name, id, search } = req.query;
+  
+  // Si este log aparece, significa que APIGuard consideró la petición SEGURA
+  console.log(`--- [SERVER] Petición recibida legalmente: name=${name || ''}, id=${id || ''} ---`);
+
+  res.json({ 
+    status: "success", 
+    message: "La petición llegó al controlador de Express",
+    echo: req.query 
+  });
+});
 // ---------------- Prueba DoS ------------------------------
 app.get('/', (req, res) => {
   res.send('home');
