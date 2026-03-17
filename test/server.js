@@ -37,6 +37,12 @@ app.post('/login', express.json(), (req, res) => {
 app.get('/', (req, res) => {
   res.send('home');
 });
+
+// Endpoint "Costoso" de prueba
+app.get('/api/reports/heavy-export', (req, res) => {
+  // Simulamos que hace algo que consume CPU
+  res.json({ message: "Reporte generado con éxito", data: "..." });
+});
 // ---------------------------------------------------------
 
 // ---------------- Servidor -------------------------------

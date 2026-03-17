@@ -1,38 +1,34 @@
 import { createRequestRateDetector } from "../../detectors/requestRate_Detector.js";
 import { createEndpointRateDetector } from "../../detectors/endpointRate_Detector.js";
+import { createExpensiveEndpointDetector } from "../../detectors/expensiveEndpoint_Detector.js";
 
 import { createDosAnalyzer } from "../../analyzers/dosAnalyzer.js";
+import { createExpensiveEndpointAnalyzer } from "../../analyzers/expensiveEndpointAnalyzer.js";
 
 export function registerDoSThreat({ bus, logger, config }) {
   const dosConfig = config?.security?.detectors?.dos;
-
   if (!dosConfig) return;
 
-  // 1. Registro del Detector de Request Flood
+  // 1. Detectores
   if (dosConfig.requestFlood?.enabled) {
-    const requestRateDetector = createRequestRateDetector({
-      bus,
-      config: dosConfig.requestFlood 
-    });
-    bus.registerDetector(requestRateDetector);
+    bus.registerDetector(createRequestRateDetector({ bus, config: dosConfig.requestFlood }));
   }
 
-  // 2. Registro del Detector de Endpoint Flood
   if (dosConfig.endpointFlood?.enabled) {
-    const endpointRateDetector = createEndpointRateDetector({
-      bus,
-      config: dosConfig.endpointFlood
-    });
-    bus.registerDetector(endpointRateDetector);
+    bus.registerDetector(createEndpointRateDetector({ bus, config: dosConfig.endpointFlood }));
   }
 
-  // 3. Registro del Analizador (Siempre se registra si el módulo DoS está activo)
-  const dosAnalyzer = createDosAnalyzer({
-    bus,
-    logger,
-    config
-  });
+  if (dosConfig.expensiveEndpoints?.enabled) {
+    bus.registerDetector(createExpensiveEndpointDetector({ bus, config, logger }));
+  }
+
+  // 2. Analizadores
   
-  bus.registerAnalyzer(dosAnalyzer);
-  
+  // Analizador para Request y Endpoint Flood (comparten lógica de volumen)
+  bus.registerAnalyzer(createDosAnalyzer({ bus, logger, config }));
+
+  // Analizador específico para Expensive Endpoints (lógica de lista/umbral estricto)
+  //if (dosConfig.expensiveEndpoints?.enabled) {
+    bus.registerAnalyzer(createExpensiveEndpointAnalyzer({ bus, logger, config }));
+  //}
 }
