@@ -20,7 +20,6 @@ export const defaultConfig = {
         windowMS: 60_000
       },
 
-      // --- SQL INJECTION ---
       sqlInjection: {
         enabled: true,
         threshold: 3, // Puntuación acumulada necesaria para disparar la amenaza
@@ -28,6 +27,13 @@ export const defaultConfig = {
         checkBody: true,  // Analizar el cuerpo de la petición (JSON, forms)
         // Campos que ignoraremos para evitar procesar datos sensibles
         excludeFields: ['password', 'token', 'secret'] 
+      },
+
+      noSqlInjection: {
+        enabled: true,
+        threshold: 10,
+        checkQuery: true,
+        checkBody: true
       },
 
       dos: {
@@ -75,6 +81,12 @@ export const defaultConfig = {
         scope: 'ip',
         duration: 600_000 // 10 minutos de bloqueo inicial
       },
+
+      'threat.nosql_injection': {
+      action: 'block',
+      scope: 'ip',
+      duration: 600_000
+    },
 
       'threat.dos': {
         action: 'delay',
