@@ -1,68 +1,69 @@
 import express from 'express';
-import apiguard from '../src/index.js'; //  SOLO la API pública
+import apiguard from '../src/index.js';
 
 const app = express();
 
-// 1. PRIMERO: Los Parsers Globales
+// 1. PRIMERO: Los Parsers Globales (Crítico para que APIGuard vea los datos)
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 
-// 2. SEGUNDO: APIGuard (Ahora sí tiene datos que leer)
+// 2. SEGUNDO: APIGuard (Actúa como escudo entre los datos y tus rutas)
 app.use(
   apiguard({
-    // opciones...
+    // Aquí APIGuard ya configuró sus detectores de SQLi, NoSQL, DoS, etc.
   })
 );
 
 // ---------------- Endpoints de prueba ---------------------
-app.get('/fast', (req, res) => {
-  res.send('fast');
+
+// Endpoint base
+app.get('/', (req, res) => res.send('APIGuard Shield Active'));
+
+// --- PRUEBA: Login (Fuerza Bruta y NoSQL Body Injection) ---
+app.post('/login', (req, res) => {
+  const { username, password } = req.body || {};
+  
+  // LOG de control: Si ves esto con un ataque, APIGuard falló.
+  //console.log(`--- [SERVER] Intento de acceso: user=${username}, pass=${JSON.stringify(password)} ---`);
+
+  if (username === 'admin' && password === '1234') {
+    return res.status(200).json({ success: true, message: "Login correcto" });
+  }
+
+  return res.status(401).json({ success: false, message: "Credenciales inválidas" });
 });
+
+// --- PRUEBA: Usuarios (SQLi y NoSQL Query Injection) ---
+app.get('/api/users', (req, res) => {
+  // En NoSQL, name o id pueden llegar como objetos { $ne: null }
+  //console.log("--- [SERVER] Query recibida:", req.query);
+
+  res.json({ 
+    status: "success", 
+    message: "La petición llegó al controlador (Segura)",
+    echo: req.query 
+  });
+});
+
+// Añade esto debajo del app.get('/api/users'...)
+app.post('/api/users', (req, res) => {
+  res.json({ message: "Si ves esto, el ataque POST pasó" });
+});
+
+// --- PRUEBA: DoS (Rutas rápidas, lentas y costosas) ---
+app.get('/fast', (req, res) => res.send('fast'));
 
 app.get('/slow', async (req, res) => {
   await new Promise(r => setTimeout(r, 800));
   res.send('slow');
 });
 
-// --------------- Prueba para fuerza bruta -----------------
-app.post('/login', express.json(), (req, res) => {
-  const { username, password } = req.body || {};
-
-  if (username === 'admin' && password === '1234') {
-    return res.status(200).json({ success: true });
-  }
-
-  return res.status(401).json({ success: false });
-});
-
-// ---------------- Prueba para SQLi ----------------------
-app.get('/api/users', (req, res) => {
-  const { name, id, search } = req.query;
-  
-  // Si este log aparece, significa que APIGuard consideró la petición SEGURA
-  console.log(`--- [SERVER] Petición recibida legalmente: name=${name || ''}, id=${id || ''} ---`);
-
-  res.json({ 
-    status: "success", 
-    message: "La petición llegó al controlador de Express",
-    echo: req.query 
-  });
-});
-// ---------------- Prueba DoS ------------------------------
-app.get('/', (req, res) => {
-  res.send('home');
-});
-
-// Endpoint "Costoso" de prueba
 app.get('/api/reports/heavy-export', (req, res) => {
-  // Simulamos que hace algo que consume CPU
-  res.json({ message: "Reporte generado con éxito", data: "..." });
+  res.json({ message: "Reporte pesado generado" });
 });
-// ---------------------------------------------------------
 
 // ---------------- Servidor -------------------------------
 app.listen(3000, () => {
-  console.log('Servidor en http://localhost:3000');
-  console.log('\n');
+  console.log('Servidor APIGuard en http://localhost:3000');
+  console.log('Esperando señales de ataque...\n');
 });
-// ---------------------------------------------------------
