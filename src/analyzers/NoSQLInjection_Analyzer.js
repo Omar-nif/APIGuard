@@ -6,8 +6,6 @@ export function createNoSQLInjectionAnalyzer({ bus, logger }) {
     // 1. Escuchamos únicamente sospechas del detector NoSQL
     if (!signal || signal.type !== 'nosql.suspicion') return;
 
-    console.log("🟡 ANALYZER RECIBIÓ:", signal.type);
-
     const { score, threshold } = signal.data;
     const ip = signal.event?.request?.ip;
     const path = signal.event?.request?.path;

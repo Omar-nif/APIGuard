@@ -81,11 +81,10 @@ export const defaultConfig = {
         delay: { min: 500, max: 4000 }
       },
 
-      // --- NUEVA POLÍTICA: SQL INJECTION ---
       'threat.sql_injection': {
-        action: 'block', // Acción radical para una amenaza de integridad de datos
+        action: 'block', 
         scope: 'ip',
-        duration: 600_000 // 10 minutos de bloqueo inicial
+        duration: 600_000 
       },
 
       'threat.nosql_injection': {

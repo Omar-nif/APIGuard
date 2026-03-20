@@ -65,7 +65,6 @@ export function createDecisionEngine({ bus, decisionStore, logger, config }) {
    */
   function handleThreat(signal) {
 
-    console.log("🔴 ENGINE RECIBIÓ:", signal.type);
     if (signal.level !== 'high') return;
 
     const policy = resolvePolicy(signal.type);
@@ -85,8 +84,6 @@ export function createDecisionEngine({ bus, decisionStore, logger, config }) {
     const decision = buildDecision(policy, signal, existing);
     if (!decision) return;
 
-    // 3. Registrar en el Store
-    console.log("🔥 REGISTRANDO DECISION");
     decisionStore.register(decision);
 
     logger?.warn?.(`[DECISION ${existing ? 'ESCALATED' : 'CREATED'}]`, {
