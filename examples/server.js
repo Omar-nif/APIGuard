@@ -8,11 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // 2. SEGUNDO: APIGuard (Actúa como escudo entre los datos y tus rutas)
-app.use(
-  apiguard({
-    // Aquí APIGuard ya configuró sus detectores de SQLi, NoSQL, DoS, etc.
-  })
-);
+app.use(apiguard({}));
 
 // ---------------- Endpoints de prueba ---------------------
 

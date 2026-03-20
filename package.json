@@ -1,19 +1,39 @@
 {
   "name": "apiguard",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Security middleware to protect APIs from common attacks",
+  "main": "src/index.js",
   "type": "module",
+
+  "bin": {
+    "apiguard": "./bin/cli.js"
+  },
+
+  "files": [
+    "src",
+    "bin",
+    "README.md"
+  ],
+
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node ./scripts/build.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+
+  "keywords": [
+    "security",
+    "middleware",
+    "waf",
+    "api",
+    "dos",
+    "sql-injection",
+    "nosql-injection"
+  ],
+
+  "author": "Omar Flores",
+  "license": "MIT",
+
   "devDependencies": {
-    "express": "^5.2.1"
-  },
-  "dependencies": {
+    "express": "^5.2.1",
     "axios": "^1.13.6",
     "node-fetch": "^3.3.2"
   }

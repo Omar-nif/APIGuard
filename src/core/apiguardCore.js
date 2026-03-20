@@ -52,6 +52,7 @@ export function createApiguardCore(config) {
 
   if (config.security?.detectors?.scraping?.enabled) {
     registerScrapingThreat({ bus, logger, config });
+    console.log('SCRAPING CONFIG:', config.security.detectors.scraping);
   }
 
   // Verificamos si existe el objeto dos para registrar sus sub-amenazas

@@ -1,0 +1,116 @@
+{
+    "logger": {
+      "mode": "threat"
+    },
+    "security": {
+      "detectors": {
+        "endpointEnumeration": {
+          "enabled": true,
+          "windowMS": 60000,
+          "threshold": 10
+        },
+        "bruteForce": {
+          "enabled": true,
+          "authPaths": ["/login"],
+          "methods": ["POST"],
+          "failureStatusCodes": [401, 403],
+          "threshold": 3,
+          "windowMS": 60000
+        },
+        "sqlInjection": {
+          "enabled": true,
+          "threshold": 3,
+          "checkQuery": true,
+          "checkBody": true,
+          "excludeFields": ["password", "token", "secret"]
+        },
+        "noSqlInjection": {
+          "enabled": true,
+          "threshold": 10,
+          "checkQuery": true,
+          "checkBody": true
+        },
+        "scraping": {
+          "enabled": true,
+          "threshold": 15,
+          "checkHeaders": true,
+          "blockSuspiciousAgents": true
+        },
+        "dos": {
+          "requestFlood": {
+            "enabled": true,
+            "windowMs": 10000,
+            "threshold": 10,
+            "cooldownMs": 1000
+          },
+          "endpointFlood": {
+            "enabled": true,
+            "windowMs": 10000,
+            "threshold": 10,
+            "cooldownMs": 1000
+          },
+          "expensiveEndpoints": {
+            "enabled": true,
+            "windowMs": 60000,
+            "threshold": 5,
+            "endpoints": ["/api/reports/heavy-export", "/api/search", "/api/export", "/api/reports"],
+            "cooldownMs": 5000
+          }
+        }
+      },
+      "policies": {
+        "threat.auth_bruteforce": {
+          "action": "block",
+          "scope": "ip",
+          "duration": 300000
+        },
+        "threat.endpoint_enumeration": {
+          "action": "delay",
+          "scope": "ip",
+          "duration": 120000,
+          "delay": {
+            "min": 500,
+            "max": 4000
+          }
+        },
+        "threat.sql_injection": {
+          "action": "block",
+          "scope": "ip",
+          "duration": 600000
+        },
+        "threat.nosql_injection": {
+          "action": "block",
+          "scope": "ip",
+          "duration": 600000
+        },
+        "threat.scraping": {
+          "action": "block",
+          "duration": 3600000,
+          "scope": "ip",
+          "reason": "Automated scraping behavior detected"
+        },
+        "threat.dos": {
+          "action": "delay",
+          "scope": "ip",
+          "duration": 60000,
+          "delay": {
+            "min": 200,
+            "max": 1000
+          }
+        },
+        "threat.dos.expensive_endpoint": {
+          "action": "rateLimit",
+          "scope": "ip",
+          "duration": 120000,
+          "rateLimit": {
+            "maxRequests": 2,
+            "windowMs": 10000
+          }
+        }
+      }
+    },
+    "http": {
+      "ignorePaths": [],
+      "slowThreshold": null
+    }
+  }
