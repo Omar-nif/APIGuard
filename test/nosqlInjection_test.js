@@ -20,14 +20,14 @@ async function runTest(name, endpoint, method = 'GET', body = null) {
     console.log(`Status: ${response.status}`);
     
     if (response.status === 403) {
-      console.log(`✅ Resultado: BLOQUEADO (Correcto)`);
+      console.log(`Resultado: BLOQUEADO (Correcto)`);
     } else if (response.status === 200) {
-      console.log(`✅ Resultado: PERMITIDO (Correcto)`);
+      console.log(`Resultado: PERMITIDO (Correcto)`);
     } else {
-      console.log(`⚠️ Resultado inesperado: ${response.status}`);
+      console.log(`Resultado inesperado: ${response.status}`);
     }
   } catch (error) {
-    console.error(`❌ Error en la conexión: ${error.message}`);
+    console.error(`Error en la conexión: ${error.message}`);
   }
 }
 

@@ -47,7 +47,7 @@ export function createDecisionEngine({ bus, decisionStore, logger, config }) {
       // Penalización: Duplicamos la duración si es reincidente
       duration = existing.duration * 2;
       
-      console.log(`[ENGINE] Escalando de ${existing.action} a ${action} para ${ip}`);
+      //console.log(`[ENGINE] Escalando de ${existing.action} a ${action} para ${ip}`);
     }
 
     return {
@@ -64,6 +64,8 @@ export function createDecisionEngine({ bus, decisionStore, logger, config }) {
    * Manejador principal de señales de amenaza
    */
   function handleThreat(signal) {
+
+    console.log("🔴 ENGINE RECIBIÓ:", signal.type);
     if (signal.level !== 'high') return;
 
     const policy = resolvePolicy(signal.type);
@@ -75,15 +77,16 @@ export function createDecisionEngine({ bus, decisionStore, logger, config }) {
       path: signal.event?.request?.path || signal.data?.path
     };
     // 1. Buscar decisión previa usando el contexto corregido
-    console.log("BUSCANDO PREVIA PARA:", context.ip);
+    //console.log("BUSCANDO PREVIA PARA:", context.ip);
     const existing = decisionStore.match(context);
-    console.log("EXISTING DECISION?", existing?.action || 'none');
+    //console.log("EXISTING DECISION?", existing?.action || 'none');
 
     // 2. Construir la nueva decisión (con escalado interno)
     const decision = buildDecision(policy, signal, existing);
     if (!decision) return;
 
     // 3. Registrar en el Store
+    console.log("🔥 REGISTRANDO DECISION");
     decisionStore.register(decision);
 
     logger?.warn?.(`[DECISION ${existing ? 'ESCALATED' : 'CREATED'}]`, {

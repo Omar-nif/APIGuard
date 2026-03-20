@@ -22,10 +22,9 @@ export const defaultConfig = {
 
       sqlInjection: {
         enabled: true,
-        threshold: 3, // Puntuación acumulada necesaria para disparar la amenaza
-        checkQuery: true, // Analizar parámetros en la URL (?id=...)
-        checkBody: true,  // Analizar el cuerpo de la petición (JSON, forms)
-        // Campos que ignoraremos para evitar procesar datos sensibles
+        threshold: 3, 
+        checkQuery: true, 
+        checkBody: true,  
         excludeFields: ['password', 'token', 'secret'] 
       },
 

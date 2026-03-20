@@ -6,6 +6,7 @@ import { registerEndpointEnumerationThreat } from './threats/endpointEnumeration
 import { registerAuthBruteForceThreat } from './threats/authBruteForceThreat.js';
 import { registerDoSThreat } from './threats/dosThreat.js';
 import { registerSQLInjectionThreat } from './threats/sqlInjectionThreat.js';
+import { registerNoSQLInjectionThreat } from './threats/nosqlInjectionThreat.js';
 
 // Decisions
 import { createDecisionStore } from './decision/decisionStore.js';
@@ -42,6 +43,10 @@ export function createApiguardCore(config) {
 
   if (config?.security?.detectors?.sqlInjection?.enabled) {
     registerSQLInjectionThreat({ bus, logger, config });
+  }
+
+  if (config?.security?.detectors?.noSqlInjection?.enabled) {
+    registerNoSQLInjectionThreat({ bus, logger, config });
   }
 
   // Verificamos si existe el objeto dos para registrar sus sub-amenazas

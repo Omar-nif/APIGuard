@@ -24,7 +24,7 @@ app.post('/login', (req, res) => {
   const { username, password } = req.body || {};
   
   // LOG de control: Si ves esto con un ataque, APIGuard falló.
-  console.log(`--- [SERVER] Intento de acceso: user=${username}, pass=${JSON.stringify(password)} ---`);
+  //console.log(`--- [SERVER] Intento de acceso: user=${username}, pass=${JSON.stringify(password)} ---`);
 
   if (username === 'admin' && password === '1234') {
     return res.status(200).json({ success: true, message: "Login correcto" });
@@ -36,13 +36,18 @@ app.post('/login', (req, res) => {
 // --- PRUEBA: Usuarios (SQLi y NoSQL Query Injection) ---
 app.get('/api/users', (req, res) => {
   // En NoSQL, name o id pueden llegar como objetos { $ne: null }
-  console.log("--- [SERVER] Query recibida:", req.query);
+  //console.log("--- [SERVER] Query recibida:", req.query);
 
   res.json({ 
     status: "success", 
     message: "La petición llegó al controlador (Segura)",
     echo: req.query 
   });
+});
+
+// Añade esto debajo del app.get('/api/users'...)
+app.post('/api/users', (req, res) => {
+  res.json({ message: "Si ves esto, el ataque POST pasó" });
 });
 
 // --- PRUEBA: DoS (Rutas rápidas, lentas y costosas) ---

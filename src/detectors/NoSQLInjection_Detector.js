@@ -37,37 +37,37 @@ export function createNoSQLInjectionDetector({ bus, config, logger }) {
   function scanObject(obj) {
     let score = 0;
     if (!obj || typeof obj !== 'object') return 0;
-
+  
+    // Convertimos TODO el objeto a string de una vez para buscar operadores rápido
+    const fullString = JSON.stringify(obj);
+    NOSQL_PATTERNS.forEach(pattern => {
+      if (pattern.regex.test(fullString)) {
+        score += pattern.score;
+        logger?.debug?.(`[NoSQL] Match en estructura completa: ${pattern.name}`);
+      }
+    });
+  
     for (const key in obj) {
       if (excludeFields.includes(key)) continue;
-
-      // 1. REVISAR LA LLAVE: Ahora buscamos el $ en cualquier posición
-      // Esto atrapa "id[$ne]" y también "$gt"
+  
+      // Detectar operador en la llave (id[$ne] o $gt)
       if (key.includes('$')) {
-        score += 10; 
-        logger?.debug?.(`[NoSQL DETECTOR] Operador detectado en llave: ${key}`);
+        score += 10;
+        logger?.debug?.(`[NoSQL] Operador en llave detectado: ${key}`);
       }
-
+  
       const value = obj[key];
-
-      // 2. REVISAR EL VALOR
       if (typeof value === 'object' && value !== null) {
-        // Si el valor es un objeto, lo escaneamos recursivamente
-        score += scanObject(value);
-        
-        // Además, analizamos el objeto convertido a string por si tiene
-        // patrones sospechosos en su estructura JSON
-        score += analyzeValue(value);
-      } else {
-        score += analyzeValue(value);
+        score += scanObject(value); // Seguimos bajando en el árbol
       }
     }
     return score;
   }
 
   return function noSqlInjectionDetector(signal) {
-    if (!signal || signal.type !== 'request' || signal.event.stage !== 'request') return;
-
+    //if (!signal || signal.type !== 'request' || signal.event.stage !== 'request') return;
+    if (!signal || signal.type !== 'request') return;
+    
     const { query, body } = signal.event.request;
     let totalRequestScore = 0;
 
@@ -75,6 +75,7 @@ export function createNoSQLInjectionDetector({ bus, config, logger }) {
     if (settings.checkBody && body) totalRequestScore += scanObject(body);
 
     if (totalRequestScore > 0) {
+      logger?.debug?.(`[NoSQL] SCORE FINAL: ${totalRequestScore}`);
       bus.emit(createSignal({
         type: 'nosql.suspicion',
         source: 'noSqlInjectionDetector',
