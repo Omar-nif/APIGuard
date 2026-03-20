@@ -35,6 +35,13 @@ export const defaultConfig = {
         checkBody: true
       },
 
+      scraping: {
+        enabled: true,
+        threshold: 15,    
+        checkHeaders: true,
+        blockSuspiciousAgents: true
+      },
+
       dos: {
         requestFlood: {
           enabled: true,
@@ -86,6 +93,13 @@ export const defaultConfig = {
       scope: 'ip',
       duration: 600_000
     },
+
+    'threat.scraping': {
+        action: 'block',   
+        duration: 3600000,      
+        scope: 'ip',
+        reason: 'Automated scraping behavior detected'
+      },
 
       'threat.dos': {
         action: 'delay',
