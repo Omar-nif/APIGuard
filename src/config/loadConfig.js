@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { defaultConfig } from './defaultConfig.js';
 
 function deepMerge(target, source) {
@@ -25,5 +27,25 @@ function deepMerge(target, source) {
 }
 
 export function loadConfig(userConfig = {}) {
-  return deepMerge(defaultConfig, userConfig);
+  let fileConfig = {};
+
+  try {
+    const configPath = path.resolve(process.cwd(), 'apiguard.config.json');
+
+    if (fs.existsSync(configPath)) {
+      const raw = fs.readFileSync(configPath, 'utf-8');
+      fileConfig = JSON.parse(raw);
+
+      console.log('APIGuard: Config loaded from apiguard.config.json');
+    }
+  } catch (err) {
+    console.warn('APIGuard: Failed to load config file, using defaults');
+  }
+
+  // Orden de prioridad:
+  // defaultConfig < fileConfig < userConfig
+  const mergedWithFile = deepMerge(defaultConfig, fileConfig);
+  const finalConfig = deepMerge(mergedWithFile, userConfig);
+
+  return finalConfig;
 }
