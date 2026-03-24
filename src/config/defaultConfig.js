@@ -2,6 +2,11 @@ export const defaultConfig = {
   logger: {
     mode: 'threat' // silent | threat | debug
   },
+    projectKey: "PROYECTO_DEMO_001",
+    telemetry: {
+      enabled: true,
+      endpoint: "http://localhost:4000/api/v1/telemetry"
+    },
 
   security: {
     detectors: {
