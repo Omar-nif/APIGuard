@@ -2,6 +2,11 @@
     "logger": {
       "mode": "threat"
     },
+      "projectKey": "PROYECTO_DEMO_001",
+      "telemetry": {
+        "enabled": true,
+        "endpoint": "http://localhost:4000/api/v1/telemetry"
+      },
     "security": {
       "detectors": {
         "endpointEnumeration": {
@@ -31,7 +36,7 @@
           "checkBody": true
         },
         "scraping": {
-          "enabled": true,
+          "enabled": false,
           "threshold": 15,
           "checkHeaders": true,
           "blockSuspiciousAgents": true

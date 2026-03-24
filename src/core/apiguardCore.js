@@ -1,5 +1,6 @@
 import { createSignalBus } from './signalBus.js';
 import { createLogger } from './logger.js';
+import { createTelemetryReporter } from './reporter.js';
 
 // Threats
 import { registerEndpointEnumerationThreat } from './threats/endpointEnumerationThreat.js';
@@ -20,9 +21,7 @@ export function createApiguardCore(config) {
 
   const bus = createSignalBus({ logger });
 
-  // ==============================
-  // DECISION SYSTEM
-  // ==============================
+  // ================DECISION SYSTEM ==============================
   const decisionStore = createDecisionStore({ logger });
 
   createDecisionEngine({
@@ -32,7 +31,7 @@ export function createApiguardCore(config) {
     config
   });
 
-  //============== THREAT REGISTRY =======================
+  //============== THREAT REGISTRY ===============================
 
   if (config.security?.detectors?.endpointEnumeration?.enabled) {
     registerEndpointEnumerationThreat({ bus, logger, config });
@@ -52,7 +51,6 @@ export function createApiguardCore(config) {
 
   if (config.security?.detectors?.scraping?.enabled) {
     registerScrapingThreat({ bus, logger, config });
-    console.log('SCRAPING CONFIG:', config.security.detectors.scraping);
   }
 
   // Verificamos si existe el objeto dos para registrar sus sub-amenazas
@@ -66,9 +64,13 @@ export function createApiguardCore(config) {
       }
   }
 
+  // ============================ Telemetry sistem =========================
+  
+  createTelemetryReporter( { bus, config, logger });
+  
+// --------------------------------------------------------------------------
   return {
     process(event) {
-      // REGRESAMOS A 'request' para mantener compatibilidad con tus detectores
       bus.emit({
         type: 'request', 
         event,

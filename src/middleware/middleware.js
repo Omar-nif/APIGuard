@@ -43,10 +43,8 @@ export default function createApiguardMiddleware({
 
     onRequest(immediateEvent);
 
-    console.log("🔍 CHECK STORE");
 
     const immediateDecision = decisionStore.match({ ip: req.ip, path: req.path });
-    console.log("RESULTADO:", immediateDecision);
     if (immediateDecision && immediateDecision.action === 'block') {
         return applyDecision({ decision: immediateDecision, req, res, next });
     }

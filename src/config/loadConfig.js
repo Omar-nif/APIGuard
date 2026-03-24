@@ -35,8 +35,6 @@ export function loadConfig(userConfig = {}) {
     if (fs.existsSync(configPath)) {
       const raw = fs.readFileSync(configPath, 'utf-8');
       fileConfig = JSON.parse(raw);
-
-      console.log('APIGuard: Config loaded from apiguard.config.json');
     }
   } catch (err) {
     console.warn('APIGuard: Failed to load config file, using defaults');
