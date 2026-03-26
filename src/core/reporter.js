@@ -22,6 +22,7 @@ export function createTelemetryReporter({ bus, config, logger }) {
         ip: signal.event?.request?.ip || 'unknown',
         path: signal.event?.request?.path || 'unknown',
         method: signal.event?.request?.method || 'unknown',
+        status_code: signal.event?.response?.status || null,
         score: signal.data?.score || 0,
         detections: signal.data?.detections || []
       }
