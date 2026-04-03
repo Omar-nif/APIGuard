@@ -2,7 +2,7 @@
 
 export function createTelemetryReporter({ bus, config, logger }) {
   const telemetry = config?.telemetry;
-  const apiKey = config?.projectKey;
+  const apiKey = config?.apiKey;
 
   // 1. Verificación inicial
   if (!telemetry?.enabled || !apiKey) {
@@ -22,7 +22,7 @@ export function createTelemetryReporter({ bus, config, logger }) {
         ip: signal.event?.request?.ip || 'unknown',
         path: signal.event?.request?.path || 'unknown',
         method: signal.event?.request?.method || 'unknown',
-        status_code: signal.event?.response?.status || null,
+        status_code: signal.event?.response?.statusCode || null,
         score: signal.data?.score || 0,
         detections: signal.data?.detections || []
       }

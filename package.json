@@ -29,7 +29,7 @@
     "nosql-injection"
   ],
 
-  "author": "Omar Flores",
+  "author": "APIGuard",
   "license": "MIT",
 
   "devDependencies": {
