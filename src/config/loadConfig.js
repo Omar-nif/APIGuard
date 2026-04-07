@@ -30,11 +30,17 @@ export function loadConfig(userConfig = {}) {
   let fileConfig = {};
 
   try {
-    const configPath = path.resolve(process.cwd(), 'apiguard.config.json');
+    const configCandidates = [
+      path.resolve(process.cwd(), 'apiguard.config.json'),
+      path.resolve(process.cwd(), 'examples', 'apiguard.config.json')
+    ];
 
-    if (fs.existsSync(configPath)) {
+    for (const configPath of configCandidates) {
+      if (!fs.existsSync(configPath)) continue;
+
       const raw = fs.readFileSync(configPath, 'utf-8');
       fileConfig = JSON.parse(raw);
+      break;
     }
   } catch (err) {
     console.warn('APIGuard: Failed to load config file, using defaults');
