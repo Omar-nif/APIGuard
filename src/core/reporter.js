@@ -75,51 +75,66 @@ export function createTelemetryReporter({ bus, config, logger }) {
   }
 
   const reportAction = (signal) => {
-    const eventType = mapEventType(signal?.type);
-    const severity = mapSeverity(signal?.level);
-    const summary = buildSummary(signal, eventType);
-    const score =
-      signal?.data?.score ??
-      signal?.data?.attempts ??
-      signal?.data?.requests ??
-      null;
+    void (async () => {
+      const eventType = mapEventType(signal?.type);
+      const severity = mapSeverity(signal?.level);
+      const summary = buildSummary(signal, eventType);
+      const score =
+        signal?.data?.score ??
+        signal?.data?.attempts ??
+        signal?.data?.requests ??
+        null;
 
-    const payload = {
-      installation_id: reporterConfig.installationId,
-      detected_at: new Date(signal?.timestamp || Date.now()).toISOString(),
-      event_type: eventType,
-      severity,
-      summary,
-      description: summary,
-      detector_code: buildDetectorCode(signal),
-      ip: signal?.event?.request?.ip || null,
-      method: signal?.event?.request?.method || null,
-      path: signal?.event?.request?.path || null,
-      status_code: signal?.event?.response?.statusCode ?? null,
-      score,
-      payload_json: {
-        request_id: signal?.event?.id || null,
-        source: signal?.source || null,
-        signal_type: signal?.type || null,
-        detections: signal?.data?.detections || [],
-        data: signal?.data || {},
-        request: {
-          query: signal?.event?.request?.query || {},
-          body: signal?.event?.request?.body || {}
+      const payload = {
+        installation_id: reporterConfig.installationId,
+        detected_at: new Date(signal?.timestamp || Date.now()).toISOString(),
+        event_type: eventType,
+        severity,
+        summary,
+        description: summary,
+        detector_code: buildDetectorCode(signal),
+        ip: signal?.event?.request?.ip || null,
+        method: signal?.event?.request?.method || null,
+        path: signal?.event?.request?.path || null,
+        status_code: signal?.event?.response?.statusCode ?? null,
+        score,
+        payload_json: {
+          request_id: signal?.event?.id || null,
+          source: signal?.source || null,
+          signal_type: signal?.type || null,
+          detections: signal?.data?.detections || [],
+          data: signal?.data || {},
+          request: {
+            query: signal?.event?.request?.query || {},
+            body: signal?.event?.request?.body || {}
+          }
         }
-      }
-    };
+      };
 
-    fetch(reporterConfig.endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': reporterConfig.apiKey
-      },
-      body: JSON.stringify(payload)
-    }).catch((err) => {
-      logger?.threat?.('[REPORTER] Failed to send SecurityEvent:', err?.message || err);
-    });
+      logger?.threat?.('[REPORTER] Sending SecurityEvent to dashboard', eventType, severity);
+
+      try {
+        const response = await fetch(reporterConfig.endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': reporterConfig.apiKey
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const responseText = await response.text().catch(() => '');
+          logger?.threat?.(
+            '[REPORTER] Dashboard ingest rejected SecurityEvent',
+            response.status,
+            responseText
+          );
+        }
+      } catch (err) {
+        logger?.threat?.('[REPORTER] Failed to send SecurityEvent:', err?.message || err);
+      }
+    })();
   };
 
   bus.registerAction(reportAction);
