@@ -1,6 +1,11 @@
 import express from 'express';
 import apiguard from '../src/index.js';
+import { loadConfig } from '../src/config/loadConfig.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 // 1. PRIMERO: Los Parsers Globales (Crítico para que APIGuard vea los datos)
@@ -8,7 +13,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // 2. SEGUNDO: APIGuard (Actúa como escudo entre los datos y tus rutas)
-app.use(apiguard({}));
+// Intentar cargar config desde apiguard.config.json, si no existe usar config por defecto
+let userConfig = {};
+try {
+  const configPath = path.join(__dirname, 'apiguard.config.json');
+  if (fs.existsSync(configPath)) {
+    const configContent = fs.readFileSync(configPath, 'utf-8');
+    userConfig = JSON.parse(configContent);
+    console.log(' Configuración cargada desde apiguard.config.json');
+  }
+} catch (err) {
+  console.warn(' No se pudo cargar apiguard.config.json:', err.message);
+}
+
+app.use(apiguard(userConfig));
 
 // ---------------- Endpoints de prueba ---------------------
 

@@ -19,12 +19,27 @@ export function createRequestRateDetector({ bus, config = {} }) {
 
   const ipStats = new Map();
   const lastSignal = new Map();
+  const CLEANUP_INTERVAL = Math.max(windowMs, 5000); // Limpiar cada windowMs o 5s (lo que sea mayor)
+  let lastCleanupTime = Date.now();
 
   // Función de limpieza para evitar fugas de memoria
   function cleanup(ip, stats, now) {
-    if (now - stats.windowStart > windowMs * 2) { // Si ha pasado el doble de la ventana sin actividad
+    if (now - stats.lastActivity > windowMs * 3) { // Limpiar IPs inactivas por 3x windowMs
       ipStats.delete(ip);
       lastSignal.delete(ip);
+    }
+  }
+
+  // Limpieza global periódica de todas las IPs
+  function globalCleanup(now) {
+    if (now - lastCleanupTime < CLEANUP_INTERVAL) return;
+    lastCleanupTime = now;
+
+    for (const [ip, stats] of ipStats.entries()) {
+      if (now - stats.lastActivity > windowMs * 3) {
+        ipStats.delete(ip);
+        lastSignal.delete(ip);
+      }
     }
   }
 
@@ -37,12 +52,18 @@ export function createRequestRateDetector({ bus, config = {} }) {
     const ip = event.request.ip;
     const now = Date.now();
 
+    // Ejecutar limpieza global periódicamente
+    globalCleanup(now);
+
     let stats = ipStats.get(ip);
 
     if (!stats) {
-      stats = { count: 0, windowStart: now };
+      stats = { count: 0, windowStart: now, lastActivity: now };
       ipStats.set(ip, stats);
     }
+
+    // Actualizar tiempo de última actividad
+    stats.lastActivity = now;
 
     // Reiniciar ventana si expiró
     if (now - stats.windowStart > windowMs) {
@@ -73,7 +94,7 @@ export function createRequestRateDetector({ bus, config = {} }) {
       );
     }
 
-    // Ejecutar limpieza esporádica
+    // Ejecutar limpieza individual
     cleanup(ip, stats, now);
   };
 }
