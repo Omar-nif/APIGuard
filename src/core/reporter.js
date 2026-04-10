@@ -1,142 +1,48 @@
-// src/core/reporter.js
-
-const VALID_SEVERITIES = new Set(['low', 'medium', 'high', 'critical']);
-
-function resolveReporterConfig(config = {}) {
-  const reporting = config?.reporting || config?.telemetry || {};
-  const apiKey =
-    config?.api_key ||
-    reporting?.api_key ||
-    config?.apiKey ||
-    config?.apikey ||
-    reporting?.apiKey;
-  const installationId =
-    reporting?.installation_id ||
-    reporting?.installationId ||
-    config?.installation_id ||
-    config?.installationId;
-
-  let endpoint = reporting?.endpoint || null;
-
-  if (!endpoint && (reporting?.base_url || reporting?.baseUrl)) {
-    const baseUrl = reporting?.base_url || reporting?.baseUrl;
-    endpoint = `${baseUrl.replace(/\/$/, '')}/api/ingest/security-events`;
-  }
-
-  return {
-    enabled: Boolean(reporting?.enabled),
-    endpoint,
-    apiKey,
-    installationId
-  };
-}
-
-function mapEventType(type = '') {
-  if (type === 'threat.sql_injection') return 'sql_injection';
-  if (type === 'threat.nosql_injection') return 'nosql_injection';
-  if (type === 'threat.auth_bruteforce') return 'brute_force';
-  if (type === 'threat.endpoint_enumeration' || type === 'threat.scraping') return 'reconnaissance';
-  if (type.startsWith('threat.dos.')) return 'ddos_attempt';
-  return 'other';
-}
-
-function mapSeverity(level = 'medium') {
-  const normalized = String(level).toLowerCase();
-  return VALID_SEVERITIES.has(normalized) ? normalized : 'medium';
-}
-
-function buildDetectorCode(signal) {
-  const detections = signal?.data?.detections;
-
-  if (Array.isArray(detections) && detections.length > 0) {
-    return String(detections[0]);
-  }
-
-  return signal?.source || signal?.type || 'unknown_detector';
-}
-
-function buildSummary(signal, eventType) {
-  const path = signal?.event?.request?.path || 'unknown_path';
-  const ip = signal?.event?.request?.ip || 'unknown_ip';
-  return `[${eventType}] threat detected on ${path} from ${ip}`;
-}
-
 export function createTelemetryReporter({ bus, config, logger }) {
-  const reporterConfig = resolveReporterConfig(config);
+  const telemetry = config?.telemetry;
+  const apiKey = config?.apiKey;
 
-  if (
-    !reporterConfig.enabled ||
-    !reporterConfig.endpoint ||
-    !reporterConfig.apiKey ||
-    !reporterConfig.installationId
-  ) {
-    logger?.debug?.('[REPORTER] Remote reporting disabled or incomplete config.');
+  if (!telemetry?.enabled || !apiKey) {
+    logger?.info?.("[REPORTER] Telemetría desactivada o sin API Key.");
     return;
   }
 
   const reportAction = (signal) => {
-    void (async () => {
-      const eventType = mapEventType(signal?.type);
-      const severity = mapSeverity(signal?.level);
-      const summary = buildSummary(signal, eventType);
-      const score =
-        signal?.data?.score ??
-        signal?.data?.attempts ??
-        signal?.data?.requests ??
-        null;
-
-      const payload = {
-        installation_id: reporterConfig.installationId,
-        detected_at: new Date(signal?.timestamp || Date.now()).toISOString(),
-        event_type: eventType,
-        severity,
-        summary,
-        description: summary,
-        detector_code: buildDetectorCode(signal),
-        ip: signal?.event?.request?.ip || null,
-        method: signal?.event?.request?.method || null,
-        path: signal?.event?.request?.path || null,
-        status_code: signal?.event?.response?.statusCode ?? null,
-        score,
-        payload_json: {
-          request_id: signal?.event?.id || null,
-          source: signal?.source || null,
-          signal_type: signal?.type || null,
-          detections: signal?.data?.detections || [],
-          data: signal?.data || {},
-          request: {
-            query: signal?.event?.request?.query || {},
-            body: signal?.event?.request?.body || {}
-          }
+    (async () => {
+      const report = {
+        apiKey: apiKey,
+        timestamp: new Date().toISOString(),
+        threat: {
+          type: signal.type,
+          level: signal.data?.level || 'medium',
+          ip: signal.event?.request?.ip || 'unknown',
+          path: signal.event?.request?.path || 'unknown',
+          method: signal.event?.request?.method || 'unknown',
+          status_code: signal.event?.response?.statusCode || null,
+          score: signal.data?.score || 0,
+          detections: signal.data?.detections || []
         }
       };
 
-      logger?.threat?.('[REPORTER] Sending SecurityEvent to dashboard', eventType, severity);
-
       try {
-        const response = await fetch(reporterConfig.endpoint, {
+        const response = await fetch(telemetry.endpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': reporterConfig.apiKey
+            'x-apiguard-key': apiKey 
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(report)
         });
 
         if (!response.ok) {
-          const responseText = await response.text().catch(() => '');
-          logger?.threat?.(
-            '[REPORTER] Dashboard ingest rejected SecurityEvent',
-            response.status,
-            responseText
-          );
+          logger?.error?.(`[REPORTER] Dashboard rechazó el evento: ${response.status}`);
         }
       } catch (err) {
-        logger?.threat?.('[REPORTER] Failed to send SecurityEvent:', err?.message || err);
+        logger?.error?.(`[REPORTER] Error de red al conectar con Dashboard: ${err.message}`);
       }
     })();
   };
 
   bus.registerAction(reportAction);
-  logger?.debug?.(`[REPORTER] SecurityEvent reporter connected to ${reporterConfig.endpoint}`);
+  logger?.info?.(`[REPORTER] Sistema de reportes conectado a: ${telemetry.endpoint}`);
 }
