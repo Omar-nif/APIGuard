@@ -2,16 +2,10 @@ export const defaultConfig = {
   logger: {
     mode: 'threat' // silent | threat | debug
   },
-    api_key: "PEGA_AQUI_TU_LLAVE_GENERADA",
-    reporting: {
-      enabled: false,
-      base_url: "http://localhost:4000",
-      endpoint: "http://localhost:4000/api/ingest/security-events",
-      installation_id: "INSTALLATION_ID_AQUI"
-    },
+    apikey: "",
     telemetry: {
       enabled: false,
-      endpoint: "http://localhost:4000/api/ingest/security-events"
+      endpoint: "http://localhost:4000/api/v1/telemetry"
     },
 
   security: {
