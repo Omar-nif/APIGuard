@@ -2,7 +2,7 @@
   "logger": {
     "mode": "threat"
   },
-    "apiKey": "PEGA_AQUI_TU_LLAVE_GENERADA",
+    "apiKey": "ag_3e653ed2d9e8c2ca267e2aed",
     "telemetry": {
       "enabled": true,
       "endpoint": "http://localhost:4000/api/v1/telemetry"
