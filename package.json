@@ -4,21 +4,18 @@
   "description": "Security middleware to protect APIs from common attacks",
   "main": "src/index.js",
   "type": "module",
-
   "bin": {
     "apiguard": "./bin/cli.js"
   },
-
   "files": [
     "src",
     "bin",
     "README.md"
   ],
-
   "scripts": {
-    "build": "node ./scripts/build.js"
+    "build": "node ./scripts/build.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
-
   "keywords": [
     "security",
     "middleware",
@@ -28,13 +25,12 @@
     "sql-injection",
     "nosql-injection"
   ],
-
   "author": "APIGuard",
   "license": "MIT",
-
   "devDependencies": {
-    "express": "^5.2.1",
     "axios": "^1.13.6",
+    "express": "^5.2.1",
+    "jest": "^30.3.0",
     "node-fetch": "^3.3.2"
   }
 }

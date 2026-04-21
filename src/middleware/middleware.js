@@ -38,7 +38,7 @@ export default function createApiguardMiddleware({
       req,
       res,
       ignored: false,
-      stage: 'request' // <--- NUEVO: Marcamos la fase inicial
+      stage: 'request'
     });
 
     onRequest(immediateEvent);
@@ -61,7 +61,7 @@ export default function createApiguardMiddleware({
         req,
         res,
         ignored: config.http?.ignorePaths?.includes(req.path),
-        stage: 'response' // <--- NUEVO: Marcamos la fase final
+        stage: 'response' 
       });
 
       onRequest(finalEvent); 
