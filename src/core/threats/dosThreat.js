@@ -2,7 +2,8 @@ import { createRequestRateDetector } from "../../detectors/requestRate_Detector.
 import { createEndpointRateDetector } from "../../detectors/endpointRate_Detector.js";
 import { createExpensiveEndpointDetector } from "../../detectors/expensiveEndpoint_Detector.js";
 
-import { createDosAnalyzer } from "../../analyzers/dosAnalyzer.js";
+import { createRequestFloodAnalyzer } from "../../analyzers/RequestFlood_Analyzer.js";
+import { createEndpointFloodAnalyzer } from "../../analyzers/EndpointFlood_Analyzer.js";
 import { createExpensiveEndpointAnalyzer } from "../../analyzers/expensiveEndpointAnalyzer.js";
 
 export function registerDoSThreat({ bus, logger, config }) {
@@ -23,12 +24,8 @@ export function registerDoSThreat({ bus, logger, config }) {
   }
 
   // 2. Analizadores
-  
-  // Analizador para Request y Endpoint Flood (comparten lógica de volumen)
-  bus.registerAnalyzer(createDosAnalyzer({ bus, logger, config }));
-
-  // Analizador específico para Expensive Endpoints (lógica de lista/umbral estricto)
-  //if (dosConfig.expensiveEndpoints?.enabled) {
-    bus.registerAnalyzer(createExpensiveEndpointAnalyzer({ bus, logger, config }));
+  bus.registerAnalyzer(createEndpointFloodAnalyzer({ bus, logger, config }));
+  bus.registerAnalyzer(createRequestFloodAnalyzer({ bus, logger, config }));
+  bus.registerAnalyzer(createExpensiveEndpointAnalyzer({ bus, logger, config }));
   //}
 }

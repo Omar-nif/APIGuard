@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1776720378786" clover="3.2.0">
+  <project timestamp="1776720378786" name="All files">
+    <metrics statements="20" coveredstatements="16" conditionals="14" coveredconditionals="9" methods="3" coveredmethods="2" elements="37" coveredelements="27" complexity="0" loc="20" ncloc="20" packages="1" files="1" classes="1"/>
+    <file name="middleware.js" path="C:\Users\Omar\Documents\Repositorios\apiguard\src\middleware\middleware.js">
+      <metrics statements="20" coveredstatements="16" conditionals="14" coveredconditionals="9" methods="3" coveredmethods="2"/>
+      <line num="10" count="4" type="cond" truecount="2" falsecount="0"/>
+      <line num="11" count="1" type="stmt"/>
+      <line num="14" count="3" type="cond" truecount="2" falsecount="0"/>
+      <line num="15" count="1" type="stmt"/>
+      <line num="21" count="2" type="cond" truecount="1" falsecount="1"/>
+      <line num="23" count="2" type="stmt"/>
+      <line num="24" count="2" type="stmt"/>
+      <line num="25" count="2" type="stmt"/>
+      <line num="28" count="2" type="stmt"/>
+      <line num="29" count="2" type="cond" truecount="2" falsecount="0"/>
+      <line num="34" count="1" type="stmt"/>
+      <line num="44" count="1" type="stmt"/>
+      <line num="47" count="1" type="stmt"/>
+      <line num="48" count="1" type="cond" truecount="2" falsecount="2"/>
+      <line num="49" count="0" type="stmt"/>
+      <line num="55" count="1" type="stmt"/>
+      <line num="56" count="0" type="stmt"/>
+      <line num="57" count="0" type="stmt"/>
+      <line num="67" count="0" type="stmt"/>
+      <line num="70" count="1" type="stmt"/>
+    </file>
+  </project>
+</coverage>
