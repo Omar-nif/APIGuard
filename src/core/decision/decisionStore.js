@@ -1,6 +1,9 @@
 import crypto from 'crypto';
 
-export function createDecisionStore({ cleanupInterval = 30_000 } = {}) {
+export function createDecisionStore({ 
+  cleanupInterval = 30_000,
+  maxEntries = 5000 // Límite de seguridad para la RAM
+} = {}) {
   const store = new Map();
 
   const ACTION_PRIORITY = {
@@ -10,12 +13,17 @@ export function createDecisionStore({ cleanupInterval = 30_000 } = {}) {
     monitor: 1
   };
 
-  /**
-   * Registra una nueva decisión en el almacén.
-   */
   function register(decision) {
     const key = buildKey(decision.match);
-    //console.log("GUARDANDO EN STORE:", key, "Acción:", decision.action);
+
+    // PROTECCIÓN DE MEMORIA:
+    // Si el store está lleno y vamos a insertar una llave nueva
+    if (store.size >= maxEntries && !store.has(key)) {
+      // Estrategia: Eliminar la entrada más antigua (la primera del Map)
+      const firstKey = store.keys().next().value;
+      store.delete(firstKey);
+    }
+
     store.set(key, {
       ...decision,
       expiresAt: Date.now() + decision.duration
@@ -43,19 +51,17 @@ export function createDecisionStore({ cleanupInterval = 30_000 } = {}) {
 
     const expiredKeys = [];
 
+    // Iteramos el store
     for (const [key, decision] of store.entries()) {
-      // 1. Gestión de expiración
       if (decision.expiresAt <= now) {
         expiredKeys.push(key);
         continue;
       }
 
-      // 2. Evaluación de coincidencia
       if (isMatch(decision.match, requestContext)) {
         const specificity = Object.keys(decision.match).length;
         const priority = ACTION_PRIORITY[decision.action] ?? 0;
 
-        // 3. Selección: Más específico gana, a igualdad de especificidad, gana el más severo
         if (
           specificity > highestSpecificity ||
           (specificity === highestSpecificity && priority > highestPriority)
@@ -67,15 +73,12 @@ export function createDecisionStore({ cleanupInterval = 30_000 } = {}) {
       }
     }
 
-    // Limpieza atómica de expirados
+    // Limpieza de expirados encontrada durante el match
     expiredKeys.forEach(k => store.delete(k));
 
     return bestDecision;
   }
 
-  /**
-   * Proceso periódico de limpieza
-   */
   function cleanup() {
     const now = Date.now();
     for (const [key, decision] of store.entries()) {
@@ -84,22 +87,11 @@ export function createDecisionStore({ cleanupInterval = 30_000 } = {}) {
   }
 
   function startCleanupLoop() {
-    setInterval(cleanup, cleanupInterval).unref();
+    const timer = setInterval(cleanup, cleanupInterval);
+    if (timer.unref) timer.unref();
   }
 
   startCleanupLoop();
 
   return { register, match };
 }
-
-/**
- * Genera una llave única basada en los criterios de match (IP, Path, etc.)
- */
-function buildKey(match) {
-  const parts = Object.entries(match)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => `${key}:${value}`);
-
-  return parts.length > 0 ? parts.join('|') : crypto.randomUUID();
-}
-

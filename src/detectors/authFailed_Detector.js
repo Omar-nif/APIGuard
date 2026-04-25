@@ -13,19 +13,27 @@ export function createAuthFailedDetector({ bus, config }) {
   } = bruteForce;
 
   return function authFailedDetector(signal) {
-    if (!signal || signal.type !== 'request') return;
+    try {
+      // 1. Filtrado rápido y eficiente
+      if (!signal || signal.type !== 'request') return;
 
-    const event = signal.event;
-    if (!event || event.meta?.ignored) return;
+      const event = signal.event;
+      if (!event || event.meta?.ignored) return;
 
-    const { request, response } = event;
+      const { request, response } = event;
+      if (!request || !response) return;
 
-    if (!authPaths.includes(request.path)) return;
-    if (!methods.includes(request.method)) return;
-    if (!failureStatusCodes.includes(response.statusCode)) return;
+      // Verificaciones de corto circuito
+      if (!authPaths.includes(request.path)) return;
+      if (!methods.includes(request.method)) return;
+      if (!failureStatusCodes.includes(response.statusCode)) return;
 
-    bus.emit(
-      createSignal({
+      // Extracción segura de datos del cuerpo (evitar errores si body es null/string)
+      const username = request.body && typeof request.body === 'object' 
+        ? (request.body.username || request.body.email || 'unknown') 
+        : 'unknown';
+
+      const authSignal = createSignal({
         type: 'auth.failed',
         level: 'low',
         source: 'authFailedDetector',
@@ -33,10 +41,21 @@ export function createAuthFailedDetector({ bus, config }) {
         data: {
           ip: request.ip,
           path: request.path,
-          username: request.body?.username,
+          username,
           statusCode: response.statusCode
         }
-      })
-    );
+      });
+
+      // Asincronía: No retrasamos el flujo de la respuesta
+      setImmediate(() => {
+        try {
+          bus.emit(authSignal);
+        } catch (e) {
+          // Error en el bus silenciado
+        }
+      });
+    } catch (err) {
+      // Fail-Open: Si el detector falla, la API sigue funcionando normalmente
+    }
   };
 }

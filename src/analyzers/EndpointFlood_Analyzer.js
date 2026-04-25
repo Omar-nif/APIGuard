@@ -1,4 +1,3 @@
-// src/analyzers/Endpoint_Flood_Analyzer.js
 import { createSignal } from '../signals/createSignal.js';
 
 export function createEndpointFloodAnalyzer({ bus, config }) {
@@ -6,16 +5,26 @@ export function createEndpointFloodAnalyzer({ bus, config }) {
   if (!settings?.enabled) return () => {};
 
   return function endpointFloodAnalyzer(signal) {
-    if (!signal || signal.type !== 'endpoint.high_rate') return;
+    try {
+      if (!signal || signal.type !== 'endpoint.high_rate') return;
 
-    const { event, data } = signal;
+      const { event, data } = signal;
 
-    bus.emit(createSignal({
-      type: 'threat.dos.endpoint_flood',
-      level: 'high',
-      source: 'endpointFloodAnalyzer',
-      event,
-      data: { ...data, analysisTimestamp: Date.now() }
-    }));
+      const threat = createSignal({
+        type: 'threat.dos.endpoint_flood',
+        level: 'high',
+        source: 'endpointFloodAnalyzer',
+        event,
+        data: { ...data, analysisTimestamp: Date.now() }
+      });
+
+      setImmediate(() => {
+        try {
+          bus.emit(threat);
+        } catch (e) {}
+      });
+    } catch (err) {
+      // Fail-Open
+    }
   };
 }

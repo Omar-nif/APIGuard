@@ -7,7 +7,8 @@ export function createEndpointRateDetector({ bus, config = {} }) {
     enabled = true,
     windowMs = 10000,
     threshold = 40,
-    cooldownMs = 5000
+    cooldownMs = 5000,
+    maxTrackedKeys = 20000 // Límite crítico para evitar desbordamiento por IP:Path
   } = config;
   
   if (!enabled) return () => {};
@@ -15,69 +16,72 @@ export function createEndpointRateDetector({ bus, config = {} }) {
   const endpointStats = new Map();
   const lastSignal = new Map();
 
-  // Función de limpieza para mantener el mapa bajo control
-  function cleanup(key, stats, now) {
-    // Si la ventana ya pasó y no ha habido actividad reciente, borramos
-    if (now - stats.windowStart > windowMs * 1.5) {
-      endpointStats.delete(key);
-      lastSignal.delete(key);
+  // 🔥 LIMPIEZA DESACOPLADA (Conserje)
+  const cleanupInterval = setInterval(() => {
+    const now = Date.now();
+    for (const [key, stats] of endpointStats.entries()) {
+      if (now - stats.windowStart > windowMs * 2) {
+        endpointStats.delete(key);
+        lastSignal.delete(key);
+      }
     }
-  }
+  }, windowMs).unref();
 
   return function endpointRateDetector(signal) {
-    if (!signal || signal.type !== 'request') return;
+    try {
+      if (!signal || signal.type !== 'request') return;
 
-    const event = signal.event;
-    if (!event || event.meta?.ignored) return;
+      const event = signal.event;
+      if (!event || event.meta?.ignored) return;
 
-    const ip = event.request.ip;
-    const path = event.request.path;
+      const ip = event.request.ip;
+      const path = event.request.path;
+      const key = `${ip}:${path}`;
+      const now = Date.now();
 
-    // Clave compuesta: IP + Path
-    const key = `${ip}:${path}`;
-    const now = Date.now();
+      let stats = endpointStats.get(key);
 
-    let stats = endpointStats.get(key);
+      if (!stats) {
+        // CONTROL DE CAPACIDAD (Válvula de seguridad)
+        if (endpointStats.size >= maxTrackedKeys) {
+          const oldestKey = endpointStats.keys().next().value;
+          endpointStats.delete(oldestKey);
+          lastSignal.delete(oldestKey);
+        }
 
-    if (!stats) {
-      stats = { count: 0, windowStart: now };
-      endpointStats.set(key, stats);
-    }
+        stats = { count: 0, windowStart: now };
+        endpointStats.set(key, stats);
+      }
 
-    // Reiniciar ventana
-    if (now - stats.windowStart > windowMs) {
-      stats.count = 0;
-      stats.windowStart = now;
-    }
+      // Reiniciar ventana si expiró
+      if (now - stats.windowStart > windowMs) {
+        stats.count = 0;
+        stats.windowStart = now;
+      }
 
-    stats.count++;
+      stats.count++;
 
-    // Lógica de detección
-    if (stats.count >= threshold) {
-      const last = lastSignal.get(key) ?? 0;
-      if (now - last < cooldownMs) return;
+      // Detección
+      if (stats.count >= threshold) {
+        const last = lastSignal.get(key) ?? 0;
+        if (now - last < cooldownMs) return;
 
-      lastSignal.set(key, now);
+        lastSignal.set(key, now);
 
-      bus.emit(
-        createSignal({
-          type: 'endpoint.high_rate',
-          level: 'medium',
-          source: 'endpointRateDetector',
-          event,
-          data: {
-            ip,
-            path,
-            requests: stats.count,
-            windowMs
-          }
-        })
-      );
-    }
-
-    // Limpieza esporádica basada en probabilidad para no afectar el performance en cada request
-    if (Math.random() < 0.1) { // 10% de las veces intenta limpiar la entrada actual
-       cleanup(key, stats, now);
+        setImmediate(() => {
+          try {
+            bus.emit(createSignal({
+              type: 'endpoint.high_rate',
+              level: 'medium',
+              source: 'endpointRateDetector',
+              event,
+              data: { ip, path, requests: stats.count, windowMs }
+            }));
+          } catch (e) {}
+        });
+      }
+    } catch (err) {
+      // Fail-Open
     }
   };
 }
