@@ -1,7 +1,7 @@
 import { createSignal } from "../signals/createSignal.js";
 import { SCRAPING_PATTERNS } from "../utils/scrapingPatterns.js";
 
-export function createScrapingDetector({ bus, config, logger }) {
+export function createScrapingDetector({ bus, config }) {
   const settings = config?.security?.detectors?.scraping;
   if (!settings?.enabled) return () => {};
 
@@ -40,8 +40,6 @@ export function createScrapingDetector({ bus, config, logger }) {
 
     // --- EMISIÓN DE SEÑAL ---
     if (totalScore > 0) {
-      logger?.debug?.(`[SCRAPING DETECTOR] Sospecha: ${detections.join(', ')} | Score: ${totalScore}`);
-      
       bus.emit(createSignal({
         type: 'scraping.suspicion',
         source: 'scrapingDetector',

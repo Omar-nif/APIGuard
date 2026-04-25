@@ -1,6 +1,6 @@
 import { createSignal } from "../signals/createSignal.js";
 
-export function createSQLInjectionAnalyzer({ bus, logger }) {
+export function createSQLInjectionAnalyzer({ bus}) {
   
   return function sqlInjectionAnalyzer(signal) {
     // Escuchamos únicamente las sospechas del detector de SQLi
@@ -9,12 +9,9 @@ export function createSQLInjectionAnalyzer({ bus, logger }) {
     const { score, threshold } = signal.data;
     const ip = signal.event?.request?.ip;
 
-    logger?.debug?.(`[SQLi ANALYZER] Evaluando sospecha: Score ${score} / Threshold ${threshold}`);
-
     // Si el puntaje acumulado en esta petición supera el límite configurado
     if (score >= threshold) {
-      logger?.warn?.(`[SQLi ANALYZER] ¡Amenaza detectada! IP: ${ip} alcanzó un score de ${score}`);
-
+      
       // Emitimos la señal de amenaza definitiva que el Engine capturará
       bus.emit(createSignal({
         type: 'threat.sql_injection',

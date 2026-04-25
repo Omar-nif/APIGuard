@@ -1,6 +1,6 @@
 import { createSignal } from "../signals/createSignal.js";
 
-export function createAuthBruteForceAnalyzer({ bus, logger, config }) {
+export function createAuthBruteForceAnalyzer({ bus, config }) {
   if (!bus) throw new Error('authBruteForceAnalyzer requires bus');
 
   const bruteForce = config?.security?.detectors?.bruteForce;
@@ -47,13 +47,6 @@ export function createAuthBruteForceAnalyzer({ bus, logger, config }) {
         }
       });
 
-      logger?.threat?.(
-        '[AUTH BRUTE FORCE]',
-        ip,
-        `attempts=${data.attempts}`,
-        `window=${windowMS}ms`
-      );
-
       bus.emit(threatSignal);
 
       state.delete(ip);
@@ -68,12 +61,6 @@ export function createAuthBruteForceAnalyzer({ bus, logger, config }) {
 
     data.attempts++;
     data.lastSeen = Date.now();
-
-    logger?.debug?.(
-      '[AUTH FAILED]',
-      ip,
-      `attempts=${data.attempts}`
-    );
 
     evaluate(ip, data, signal);
     cleanup(ip, data);

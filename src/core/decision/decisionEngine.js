@@ -1,6 +1,6 @@
 //console.log("DEBUG: Decision Engine Factory Called"); // Añade esto arriba
 
-export function createDecisionEngine({ bus, decisionStore, logger, config }) {
+export function createDecisionEngine({ bus, decisionStore, config }) {
   const policies = config.security?.policies ?? {};
 
   const ESCALATION = {
@@ -85,13 +85,6 @@ export function createDecisionEngine({ bus, decisionStore, logger, config }) {
     if (!decision) return;
 
     decisionStore.register(decision);
-
-    logger?.warn?.(`[DECISION ${existing ? 'ESCALATED' : 'CREATED'}]`, {
-      ip: context.ip,
-      action: decision.action,
-      reason: decision.reason,
-      duration: `${decision.duration / 1000}s`
-    });
   }
 
   bus.registerAction(handleThreat);

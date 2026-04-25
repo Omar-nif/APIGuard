@@ -1,7 +1,7 @@
 import { createSignal } from "../signals/createSignal.js";
-import { SQL_PATTERNS } from "../utils/sqlPatterns.js"; // <--- Importación limpia
+import { SQL_PATTERNS } from "../utils/sqlPatterns.js"; 
 
-export function createSQLInjectionDetector({ bus, config, logger }) {
+export function createSQLInjectionDetector({ bus, config }) {
   const settings = config?.security?.detectors?.sqlInjection;
 
   if (!settings?.enabled) return () => {};
@@ -16,7 +16,6 @@ export function createSQLInjectionDetector({ bus, config, logger }) {
     SQL_PATTERNS.forEach(pattern => {
       if (pattern.regex.test(value)) {
         totalScore += pattern.score;
-        logger?.debug?.(`[SQLi DETECTOR] Match: ${pattern.name} (+${pattern.score})`);
       }
     });
     return totalScore;
@@ -39,8 +38,6 @@ export function createSQLInjectionDetector({ bus, config, logger }) {
 
   return function sqlInjectionDetector(signal) {
     if (!signal || signal.type !== 'request') return;
-
-    console.log("DATOS RECIBIDOS EN DETECTOR:", signal.event.request.query);
 
     const { query, body } = signal.event.request;
     let totalRequestScore = 0;

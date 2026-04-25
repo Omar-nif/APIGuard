@@ -1,7 +1,7 @@
     // src/analyzers/Request_Flood_Analyzer.js
 import { createSignal } from '../signals/createSignal.js';
 
-export function createRequestFloodAnalyzer({ bus, logger, config }) {
+export function createRequestFloodAnalyzer({ bus, config }) {
   // Leemos del config centralizado de 'dos'
   const settings = config?.security?.detectors?.dos?.requestFlood;
   if (!settings?.enabled) return () => {};
@@ -11,8 +11,6 @@ export function createRequestFloodAnalyzer({ bus, logger, config }) {
 
     const { event, data } = signal;
     
-    logger?.threat?.(`[REQUEST FLOOD] IP ${data.ip} superó el umbral global.`);
-
     bus.emit(createSignal({
       type: 'threat.dos.request_flood',
       level: 'high',

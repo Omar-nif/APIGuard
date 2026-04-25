@@ -3,7 +3,6 @@ import { createSignal } from '../signals/createSignal.js';
 export function createEndpointEnumerationAnalyzer(options = {}) {
   const {
     bus,
-    logger,
     windowMs = 30_000,
     minSignals = 2
   } = options;
@@ -42,12 +41,6 @@ export function createEndpointEnumerationAnalyzer(options = {}) {
         }
       });
 
-      logger?.threat?.(
-        '[ENDPOINT ENUMERATION]',
-        ip,
-        [...data.signals]
-      );
-
       bus.emit(threatSignal);
 
       state.delete(ip);
@@ -79,12 +72,6 @@ export function createEndpointEnumerationAnalyzer(options = {}) {
       default:
         return;
     }
-
-    logger?.debug?.(
-      '[ENUM SIGNAL]',
-      signal.type,
-      signal.event?.request?.path
-    );
 
     evaluate(ip, data, signal);
     cleanup(ip, data);

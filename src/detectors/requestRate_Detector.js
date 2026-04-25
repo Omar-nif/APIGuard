@@ -1,8 +1,3 @@
-/*
-si una IP hace demasiadas requests en una ventana de tiempo
--> emitir signal: request.high_rate
-*/
-
 import { createSignal } from '../signals/createSignal.js';
 
 export function createRequestRateDetector({ bus, config = {} }) {

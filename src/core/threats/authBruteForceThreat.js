@@ -1,7 +1,7 @@
 import { createAuthFailedDetector } from "../../detectors/authFailed_Detector.js";
 import { createAuthBruteForceAnalyzer } from "../../analyzers/authBruteForceAnalyzer.js";
 
-export function registerAuthBruteForceThreat({ bus, logger, config }) {
+export function registerAuthBruteForceThreat({ bus, config }) {
     const bruteForce = config?.security?.detectors?.bruteForce;
   
     if (!bruteForce?.enabled) {
@@ -15,7 +15,6 @@ export function registerAuthBruteForceThreat({ bus, logger, config }) {
   
     const analyzer = createAuthBruteForceAnalyzer({
       bus,
-      logger,
       config
     });
   

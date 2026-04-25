@@ -1,6 +1,6 @@
 import { createSignal } from "../signals/createSignal.js";
 
-export function createExpensiveEndpointAnalyzer({ bus, logger, config }) {
+export function createExpensiveEndpointAnalyzer({ bus, config }) {
   if (!bus) throw new Error('expensiveEndpointAnalyzer requires bus');
 
   const settings = config?.security?.detectors?.dos?.expensiveEndpoints;
@@ -53,13 +53,6 @@ export function createExpensiveEndpointAnalyzer({ bus, logger, config }) {
           threshold
         }
       });
-
-      logger?.threat?.(
-        '[EXPENSIVE ENDPOINT THREAT]',
-        `ip=${ip}`,
-        `path=${path}`,
-        `hits=${data.count}`
-      );
 
       bus.emit(threatSignal);
       

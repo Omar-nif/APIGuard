@@ -1,7 +1,7 @@
 import { createSignal } from "../signals/createSignal.js";
 import { NOSQL_PATTERNS } from "../utils/nosqlPatterns.js";
 
-export function createNoSQLInjectionDetector({ bus, config, logger }) {
+export function createNoSQLInjectionDetector({ bus, config }) {
   const settings = config?.security?.detectors?.noSqlInjection;
 
   if (!settings?.enabled) return () => {};
@@ -27,7 +27,6 @@ export function createNoSQLInjectionDetector({ bus, config, logger }) {
     NOSQL_PATTERNS.forEach(pattern => {
       if (pattern.regex.test(stringToTest)) {
         totalScore += pattern.score;
-        logger?.debug?.(`[NoSQL DETECTOR] Match: ${pattern.name} (+${pattern.score})`);
       }
     });
 
@@ -43,7 +42,6 @@ export function createNoSQLInjectionDetector({ bus, config, logger }) {
     NOSQL_PATTERNS.forEach(pattern => {
       if (pattern.regex.test(fullString)) {
         score += pattern.score;
-        logger?.debug?.(`[NoSQL] Match en estructura completa: ${pattern.name}`);
       }
     });
   
@@ -53,7 +51,6 @@ export function createNoSQLInjectionDetector({ bus, config, logger }) {
       // Detectar operador en la llave (id[$ne] o $gt)
       if (key.includes('$')) {
         score += 10;
-        logger?.debug?.(`[NoSQL] Operador en llave detectado: ${key}`);
       }
   
       const value = obj[key];
@@ -75,7 +72,6 @@ export function createNoSQLInjectionDetector({ bus, config, logger }) {
     if (settings.checkBody && body) totalRequestScore += scanObject(body);
 
     if (totalRequestScore > 0) {
-      logger?.debug?.(`[NoSQL] SCORE FINAL: ${totalRequestScore}`);
       bus.emit(createSignal({
         type: 'nosql.suspicion',
         source: 'noSqlInjectionDetector',

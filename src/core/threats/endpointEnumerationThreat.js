@@ -3,17 +3,16 @@ import { createEndpointEntropyDetector } from '../../detectors/endpointEntropy_D
 import { createEndpointDiversityDetector } from '../../detectors/endpointDiversity_Detector.js';
 
 import { createEndpointEnumerationAnalyzer } from '../../analyzers/endpointEnumerationAnalyzer.js';
-import { createLogThreatAction } from '../../actions/logThreatAction.js';
 
-export function registerEndpointEnumerationThreat({ bus, logger, config }) {
+export function registerEndpointEnumerationThreat({ bus, config }) {
   const threatConfig = config.security?.detectors?.endpointEnumeration || {};
 
   const { windowMs, minSignals } = threatConfig;
 
   // Detectores
-  const notFoundDetector = createNotFoundDetector({ bus, logger });
-  const entropyDetector = createEndpointEntropyDetector({ bus, logger });
-  const diversityDetector = createEndpointDiversityDetector({ bus, logger });
+  const notFoundDetector = createNotFoundDetector({ bus });
+  const entropyDetector = createEndpointEntropyDetector({ bus });
+  const diversityDetector = createEndpointDiversityDetector({ bus });
 
   bus.registerDetector(notFoundDetector);
   bus.registerDetector(entropyDetector);
@@ -22,15 +21,10 @@ export function registerEndpointEnumerationThreat({ bus, logger, config }) {
   // Analyzer
   const analyzer = createEndpointEnumerationAnalyzer({
     bus,
-    logger,
     windowMs,
     minSignals
   });
 
   bus.registerAnalyzer(analyzer);
 
-  // Acción
-  const logAction = createLogThreatAction({ bus, logger });
-
-  bus.registerAction(logAction);
 }

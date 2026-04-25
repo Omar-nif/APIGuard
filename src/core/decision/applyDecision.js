@@ -1,12 +1,6 @@
 const ACTION_HANDLERS = {
-  block({ decision, req, res, logger }) {
-    logger?.warn?.('Request blocked', {
-      ip: req.ip,
-      reason: decision.reason
-    });
-
+  block({ decision, res }) {
     res.setHeader('X-Apiguard-Action', 'block');
-    // Opcional: indicar cuánto tiempo durará el bloqueo
     res.setHeader('X-Apiguard-Duration', decision.duration);
 
     return res.status(403).json({
@@ -15,12 +9,11 @@ const ACTION_HANDLERS = {
     });
   },
 
-  monitor({ req, logger, next }) {
-    logger?.info?.('Request monitored', { ip: req.ip });
+  monitor({ next }) {
     return next();
   },
 
-  delay({ decision, req, res, next, logger }) {
+  delay({ decision, req, res, next }) {
     const delayConfig = decision.delay ?? { min: 500, max: 2000 };
 
     if (!decision._state) {
@@ -30,23 +23,15 @@ const ACTION_HANDLERS = {
     decision._state.hits++;
 
     const { min, max } = delayConfig;
-    // Escalado de delay basado en hits (máximo tras 10 hits)
     const progress = Math.min(decision._state.hits / 10, 1);
     let delay = Math.floor(min + (max - min) * progress);
     
-    // Añadimos jitter para evitar ataques de timing precisos
+    // Jitter para evitar análisis de timing
     delay += Math.random() * 200;
-
-    logger?.warn?.('Request delayed', {
-      ip: req.ip,
-      delay: Math.round(delay),
-      hits: decision._state.hits
-    });
 
     res.setHeader('X-Apiguard-Action', 'delay');
     res.setHeader('X-Apiguard-Delay', Math.round(delay));
 
-    // PROTECCIÓN: Si el cliente cierra la conexión, no disparamos el timeout innecesariamente
     const timer = setTimeout(() => {
       if (!res.writableEnded) {
         next();
@@ -56,7 +41,7 @@ const ACTION_HANDLERS = {
     req.on('close', () => clearTimeout(timer));
   },
 
-  rateLimit({ decision, req, res, next, logger }) {
+  rateLimit({ decision, res, next }) {
     const config = decision.rateLimit ?? { maxRequests: 10, windowMs: 1000 };
 
     if (!decision._rateState) {
@@ -77,8 +62,6 @@ const ACTION_HANDLERS = {
     state.count++;
 
     if (state.count > config.maxRequests) {
-      logger?.warn?.('Rate limit exceeded', { ip: req.ip, count: state.count });
-
       res.setHeader('X-Apiguard-Action', 'rateLimit');
       res.setHeader('Retry-After', Math.ceil(config.windowMs / 1000));
 
@@ -92,8 +75,8 @@ const ACTION_HANDLERS = {
   }
 };
 
-export function applyDecision({ decision, req, res, next, logger }) {
-  // Si no hay decisión o la decisión ha expirado, permitimos pasar
+export function applyDecision({ decision, req, res, next }) {
+  // Si no hay decisión o expiró, seguimos adelante
   if (!decision || (decision.expiresAt && decision.expiresAt < Date.now())) {
     return next();
   }
@@ -101,7 +84,7 @@ export function applyDecision({ decision, req, res, next, logger }) {
   const handler = ACTION_HANDLERS[decision.action];
 
   if (handler) {
-    return handler({ decision, req, res, next, logger });
+    return handler({ decision, req, res, next });
   }
 
   return next();

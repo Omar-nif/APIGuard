@@ -6,7 +6,7 @@ import { createRequestFloodAnalyzer } from "../../analyzers/RequestFlood_Analyze
 import { createEndpointFloodAnalyzer } from "../../analyzers/EndpointFlood_Analyzer.js";
 import { createExpensiveEndpointAnalyzer } from "../../analyzers/expensiveEndpointAnalyzer.js";
 
-export function registerDoSThreat({ bus, logger, config }) {
+export function registerDoSThreat({ bus, config }) {
   const dosConfig = config?.security?.detectors?.dos;
   if (!dosConfig) return;
 
@@ -20,12 +20,12 @@ export function registerDoSThreat({ bus, logger, config }) {
   }
 
   if (dosConfig.expensiveEndpoints?.enabled) {
-    bus.registerDetector(createExpensiveEndpointDetector({ bus, config, logger }));
+    bus.registerDetector(createExpensiveEndpointDetector({ bus, config }));
   }
 
   // 2. Analizadores
-  bus.registerAnalyzer(createEndpointFloodAnalyzer({ bus, logger, config }));
-  bus.registerAnalyzer(createRequestFloodAnalyzer({ bus, logger, config }));
-  bus.registerAnalyzer(createExpensiveEndpointAnalyzer({ bus, logger, config }));
+  bus.registerAnalyzer(createEndpointFloodAnalyzer({ bus, config }));
+  bus.registerAnalyzer(createRequestFloodAnalyzer({ bus, config }));
+  bus.registerAnalyzer(createExpensiveEndpointAnalyzer({ bus, config }));
   //}
 }

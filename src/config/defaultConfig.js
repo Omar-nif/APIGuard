@@ -1,7 +1,4 @@
 export const defaultConfig = {
-  logger: {
-    mode: 'threat' // silent | threat | debug
-  },
     apikey: "",
     telemetry: {
       enabled: false,

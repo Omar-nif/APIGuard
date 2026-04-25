@@ -1,20 +1,17 @@
 import { createSQLInjectionDetector } from "../../detectors/SQLInjection_Detector.js";
 import { createSQLInjectionAnalyzer } from "../../analyzers/SQLInjection_Analyzer.js";
-import { createLogThreatAction } from '../../actions/logThreatAction.js';
 
-export function registerSQLInjectionThreat({ bus, logger, config }) {
+export function registerSQLInjectionThreat({ bus, config }) {
     const sqliConfig = config?.security?.detectors?.sqlInjection;
 
     if (!sqliConfig?.enabled) {
       return;
     }
 
-    const detector = createSQLInjectionDetector({ bus, logger, config });
-    const analyzer = createSQLInjectionAnalyzer({ bus, logger });
-    const logAction = createLogThreatAction({ bus, logger });
+    const detector = createSQLInjectionDetector({ bus, config });
+    const analyzer = createSQLInjectionAnalyzer({ bus });
 
     bus.registerDetector(detector);
     bus.registerAnalyzer(analyzer);
-    bus.registerAction(logAction);
 
 }

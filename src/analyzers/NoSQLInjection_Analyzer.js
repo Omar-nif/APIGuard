@@ -1,6 +1,6 @@
 import { createSignal } from "../signals/createSignal.js";
 
-export function createNoSQLInjectionAnalyzer({ bus, logger }) {
+export function createNoSQLInjectionAnalyzer({ bus }) {
   
   return function noSqlInjectionAnalyzer(signal) {
     // 1. Escuchamos únicamente sospechas del detector NoSQL
@@ -10,11 +10,8 @@ export function createNoSQLInjectionAnalyzer({ bus, logger }) {
     const ip = signal.event?.request?.ip;
     const path = signal.event?.request?.path;
 
-    logger?.debug?.(`[NoSQL ANALYZER] Evaluación: Score ${score} / Threshold ${threshold} en ${path}`);
-
     // 2. Verificación del umbral (Threshold)
     if (score >= threshold) {
-      logger?.warn?.(`[NoSQL ANALYZER] ¡Amenaza NoSQL confirmada! IP: ${ip} | Score: ${score}`);
 
       // 3. Emitimos la señal de amenaza definitiva
       bus.emit(createSignal({

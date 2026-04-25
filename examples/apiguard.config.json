@@ -1,7 +1,4 @@
 {
-  "logger": {
-    "mode": "threat"
-  },
     "apiKey": "ag_3e653ed2d9e8c2ca267e2aed",
     "telemetry": {
       "enabled": true,

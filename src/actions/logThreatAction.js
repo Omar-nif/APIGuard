@@ -1,23 +1,22 @@
-export function createLogThreatAction({ logger, prefix = '[APIGUARD][THREAT]' } = {}) {
-  if (!logger) {
-    throw new Error('logThreatAction requires a logger');
-  }
+// utils/logThreatAction.js
+export function createLogThreatAction(config) {
 
   return function logThreatAction(signal) {
     if (!signal || !signal.type.startsWith('threat.')) return;
 
-    const { type, level, source, data, event } = signal;
+    const { type, level, data, event, action } = signal;
+    const ip = data?.ip || event?.request?.ip || 'unknown';
+    const path = data?.path || event?.request?.path || 'unknown';
+    const timestamp = new Date().toLocaleTimeString();
 
-    const logPayload = {
-      type,
-      level,
-      source,
-      ip: data?.ip,
-      path: event?.request?.path,
-      time: new Date().toISOString(),
-      ...data // ← aquí está la clave
-    };
-
-    logger.threat(prefix, logPayload);
+    // Un formato limpio y visual para el usuario de npm
+    console.warn(
+      `[APIGuard][${timestamp}] THREAT DETECTED\n` +
+      ` > Type:  ${type}\n` +
+      ` > Level: ${level.toUpperCase()}\n` +
+      ` > IP:    ${ip}\n` +
+      ` > Path:  ${path}\n` +
+      ` -----------------------------------------`
+    );
   };
 }

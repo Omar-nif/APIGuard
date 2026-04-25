@@ -1,6 +1,6 @@
 import { createSignal } from "../signals/createSignal.js";
 
-export function createScrapingAnalyzer({ bus, logger }) {
+export function createScrapingAnalyzer({ bus }) {
   
   return function scrapingAnalyzer(signal) {
     // 1. Escuchamos únicamente señales de sospecha de scraping
@@ -10,11 +10,8 @@ export function createScrapingAnalyzer({ bus, logger }) {
     const ip = signal.event?.request?.ip;
     const path = signal.event?.request?.path;
 
-    logger?.debug?.(`[SCRAPING ANALYZER] Evaluando IP ${ip}: Score ${score} vs Threshold ${threshold}`);
-
     // 2. Verificación del umbral (Threshold definido en el Config)
     if (score >= threshold) {
-      logger?.warn?.(`[SCRAPING ANALYZER] ¡Confirmado! Comportamiento de bot en ${path}. Detecciones: ${detections.join(', ')}`);
 
       // 3. Emitimos la señal de amenaza definitiva (la que el Engine bloquea)
       bus.emit(createSignal({

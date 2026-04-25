@@ -1,8 +1,3 @@
-/*
-Si hay muchas requests a una misma IP a un mismo endpoint
--> emitir signal: endpoint.high_rate
-*/
-
 import { createSignal } from '../signals/createSignal.js';
 
 export function createEndpointRateDetector({ bus, config = {} }) {
