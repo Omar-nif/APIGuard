@@ -1,0 +1,18 @@
+# Pruebas y Cobertura
+test/
+coverage/
+jest.config.js
+
+# Ejemplos y Desarrollo
+examples/
+scripts/
+.github/
+.vscode/
+.env
+.gitignore
+
+# Archivos de Sistema y Logs
+node_modules/
+npm-debug.log
+yarn-error.log
+.DS_Store

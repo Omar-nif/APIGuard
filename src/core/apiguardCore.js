@@ -1,5 +1,5 @@
 import { createSignalBus } from './signalBus.js';
-import { createLogger } from './logger.js';
+import { createLogThreatAction } from '../actions/logThreatAction.js';
 import { createTelemetryReporter } from './reporter.js';
 
 // Threats
@@ -15,42 +15,41 @@ import { createDecisionStore } from './decision/decisionStore.js';
 import { createDecisionEngine } from './decision/decisionEngine.js';
 
 export function createApiguardCore(config) {
-  const logger = createLogger({
-    mode: config.logger.mode
-  });
 
-  const bus = createSignalBus({ logger });
+  const bus = createSignalBus();
+
+  const logAction = createLogThreatAction(); 
+  bus.registerAction(logAction);
 
   // ================DECISION SYSTEM ==============================
-  const decisionStore = createDecisionStore({ logger });
+  const decisionStore = createDecisionStore();
 
   createDecisionEngine({
     bus,
     decisionStore,
-    logger,
     config
   });
 
   //============== THREAT REGISTRY ===============================
 
   if (config.security?.detectors?.endpointEnumeration?.enabled) {
-    registerEndpointEnumerationThreat({ bus, logger, config });
+    registerEndpointEnumerationThreat({ bus, config });
   }
 
   if (config?.security?.detectors?.bruteForce?.enabled) {
-    registerAuthBruteForceThreat({ bus, logger, config });
+    registerAuthBruteForceThreat({ bus, config });
   }
 
   if (config?.security?.detectors?.sqlInjection?.enabled) {
-    registerSQLInjectionThreat({ bus, logger, config });
+    registerSQLInjectionThreat({ bus, config });
   }
 
   if (config?.security?.detectors?.noSqlInjection?.enabled) {
-    registerNoSQLInjectionThreat({ bus, logger, config });
+    registerNoSQLInjectionThreat({ bus, config });
   }
 
   if (config.security?.detectors?.scraping?.enabled) {
-    registerScrapingThreat({ bus, logger, config });
+    registerScrapingThreat({ bus, config });
   }
 
   // Verificamos si existe el objeto dos para registrar sus sub-amenazas
@@ -60,13 +59,13 @@ export function createApiguardCore(config) {
       if (dosConfig.requestFlood?.enabled || 
           dosConfig.endpointFlood?.enabled || 
           dosConfig.expensiveEndpoints?.enabled) {
-          registerDoSThreat({ bus, logger, config });
+          registerDoSThreat({ bus, config });
       }
   }
 
   // ============================ Telemetry sistem =========================
   
-  createTelemetryReporter( { bus, config, logger });
+  createTelemetryReporter( { bus, config,});
   
 // --------------------------------------------------------------------------
   return {

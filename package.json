@@ -1,7 +1,7 @@
 {
-  "name": "apiguard",
+  "name": "apiguard-js", 
   "version": "1.0.0",
-  "description": "Security middleware to protect APIs from common attacks",
+  "description": "High-performance security middleware for Node.js. Real-time protection against DoS, SQLi, NoSQLi and Brute Force.",
   "main": "src/index.js",
   "type": "module",
   "bin": {
@@ -10,27 +10,39 @@
   "files": [
     "src",
     "bin",
+    "LICENSE",
     "README.md"
   ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
-    "build": "node ./scripts/build.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "npm test -- --watch"
   },
   "keywords": [
     "security",
     "middleware",
     "waf",
-    "api",
-    "dos",
+    "api-protection",
+    "dos-protection",
     "sql-injection",
-    "nosql-injection"
+    "nosql-injection",
+    "brute-force-detection",
+    "telemetry"
   ],
-  "author": "APIGuard",
+  "author": "APIGUARD team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Omar-nif/APIGuard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Omar-nif/APIGuard/issues"  
+  },
+  "homepage": "https://github.com/Omar-nif/APIGuard#readme",
   "devDependencies": {
-    "axios": "^1.13.6",
-    "express": "^5.2.1",
-    "jest": "^30.3.0",
-    "node-fetch": "^3.3.2"
+    "express": "^5.0.0",
+    "jest": "^29.0.0"
   }
 }

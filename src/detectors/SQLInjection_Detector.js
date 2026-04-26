@@ -1,63 +1,91 @@
 import { createSignal } from "../signals/createSignal.js";
-import { SQL_PATTERNS } from "../utils/sqlPatterns.js"; // <--- Importación limpia
+import { SQL_PATTERNS } from "../utils/sqlPatterns.js"; 
 
-export function createSQLInjectionDetector({ bus, config, logger }) {
+export function createSQLInjectionDetector({ bus, config }) {
   const settings = config?.security?.detectors?.sqlInjection;
-
   if (!settings?.enabled) return () => {};
 
-  const { excludeFields = [] } = settings;
+  const { 
+    excludeFields = [], 
+    maxDepth = 5, // Evita recursión infinita
+    maxKeys = 100 // Evita escaneos de objetos masivos
+  } = settings;
+
+  // Pre-check para no iterar si no hay patrones
+  if (!Array.isArray(SQL_PATTERNS) || SQL_PATTERNS.length === 0) return () => {};
 
   function analyzeValue(value) {
-    if (typeof value !== 'string') return 0;
+    if (typeof value !== 'string' || value.length < 3) return 0;
     
     let totalScore = 0;
-    // Usamos el diccionario importado
-    SQL_PATTERNS.forEach(pattern => {
+    // Usamos un bucle for tradicional para mayor velocidad
+    for (let i = 0; i < SQL_PATTERNS.length; i++) {
+      const pattern = SQL_PATTERNS[i];
       if (pattern.regex.test(value)) {
         totalScore += pattern.score;
-        logger?.debug?.(`[SQLi DETECTOR] Match: ${pattern.name} (+${pattern.score})`);
       }
-    });
+    }
     return totalScore;
   }
 
-  function scanObject(obj) {
+  // scanObject ahora tiene límite de profundidad y cantidad de llaves
+  function scanObject(obj, depth = 0, processedKeys = { count: 0 }) {
+    if (depth > maxDepth || processedKeys.count >= maxKeys) return 0;
+    
     let score = 0;
     for (const key in obj) {
+      if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
       if (excludeFields.includes(key)) continue;
 
+      processedKeys.count++;
       const value = obj[key];
-      if (typeof value === 'object' && value !== null) {
-        score += scanObject(value);
-      } else {
+
+      if (value && typeof value === 'object') {
+        score += scanObject(value, depth + 1, processedKeys);
+      } else if (value !== null && value !== undefined) {
         score += analyzeValue(String(value));
       }
+
+      if (processedKeys.count >= maxKeys) break;
     }
     return score;
   }
 
   return function sqlInjectionDetector(signal) {
-    if (!signal || signal.type !== 'request') return;
+    try {
+      if (!signal || signal.type !== 'request') return;
 
-    console.log("DATOS RECIBIDOS EN DETECTOR:", signal.event.request.query);
+      const { query, body } = signal.event.request;
+      let totalRequestScore = 0;
 
-    const { query, body } = signal.event.request;
-    let totalRequestScore = 0;
+      // Reset de contador por cada request
+      if (settings.checkQuery && query) {
+        totalRequestScore += scanObject(query, 0, { count: 0 });
+      }
+      if (settings.checkBody && body) {
+        totalRequestScore += scanObject(body, 0, { count: 0 });
+      }
 
-    if (settings.checkQuery && query) totalRequestScore += scanObject(query);
-    if (settings.checkBody && body) totalRequestScore += scanObject(body);
+      if (totalRequestScore > 0) {
+        const suspicionSignal = createSignal({
+          type: 'sqli.suspicion',
+          source: 'sqlInjectionDetector',
+          event: signal.event,
+          data: {
+            score: totalRequestScore,
+            threshold: settings.threshold || 20
+          }
+        });
 
-    if (totalRequestScore > 0) {
-      bus.emit(createSignal({
-        type: 'sqli.suspicion',
-        source: 'sqlInjectionDetector',
-        event: signal.event,
-        data: {
-          score: totalRequestScore,
-          threshold: settings.threshold
-        }
-      }));
+        // Emisión asíncrona
+        setImmediate(() => {
+          try {
+            bus.emit(suspicionSignal);
+          } catch (e) {}
+        });
+      }
+    } catch (err) {
+      // Fail-Open: Si el escaneo falla por estructura compleja, no tiramos la app.
     }
   };
 }

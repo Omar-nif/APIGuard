@@ -1,57 +1,66 @@
 import { createSignal } from "../signals/createSignal.js";
 import { SCRAPING_PATTERNS } from "../utils/scrapingPatterns.js";
 
-export function createScrapingDetector({ bus, config, logger }) {
+export function createScrapingDetector({ bus, config }) {
   const settings = config?.security?.detectors?.scraping;
   if (!settings?.enabled) return () => {};
 
   return function scrapingDetector(signal) {
-    if (!signal || signal.type !== 'request') return;
+    try {
+      if (!signal || signal.type !== 'request') return;
 
-    const headers = signal.event.request.headers || {};
-    const userAgent = headers['user-agent'] || '';
-    let totalScore = 0;
-    let detections = [];
+      const headers = signal.event.request.headers || {};
+      const userAgent = headers['user-agent'] || '';
+      let totalScore = 0;
+      let detections = [];
 
-    // --- ANALISIS 1: User-Agent ---
-    // Buscamos en nuestra lista de librerías y herramientas
-    const allPatterns = [...SCRAPING_PATTERNS.BOT_AGENTS, ...SCRAPING_PATTERNS.AUTOMATION_TOOLS];
-    
-    allPatterns.forEach(pattern => {
-      if (pattern.regex.test(userAgent)) {
-        totalScore += pattern.score;
-        detections.push(pattern.name);
-      }
-    });
-
-    // --- ANALISIS 2: Anomalía de Headers (Fingerprinting básico) ---
-    // Si no tiene User-Agent, es sospechoso de inmediato
-    if (!userAgent) {
-      totalScore += 15;
-      detections.push('Missing User-Agent');
-    }
-
-    // Si faltan cabeceras que un navegador real SIEMPRE envía
-    SCRAPING_PATTERNS.HUMAN_INDICATORS.forEach(header => {
-      if (!headers[header]) {
-        totalScore += 3; // Puntos acumulativos por cada cabecera faltante
-      }
-    });
-
-    // --- EMISIÓN DE SEÑAL ---
-    if (totalScore > 0) {
-      logger?.debug?.(`[SCRAPING DETECTOR] Sospecha: ${detections.join(', ')} | Score: ${totalScore}`);
+      // --- ANALISIS 1: User-Agent (Identidad) ---
+      const allPatterns = [...SCRAPING_PATTERNS.BOT_AGENTS, ...SCRAPING_PATTERNS.AUTOMATION_TOOLS];
       
-      bus.emit(createSignal({
-        type: 'scraping.suspicion',
-        source: 'scrapingDetector',
-        event: signal.event,
-        data: {
-          score: totalScore,
-          threshold: settings.threshold || 15,
-          detections
+      for (const pattern of allPatterns) {
+        if (pattern.regex.test(userAgent)) {
+          totalScore += pattern.score;
+          detections.push(pattern.name);
         }
-      }));
+      }
+
+      // --- ANALISIS 2: Anomalía de Headers (Comportamiento Amable) ---
+      
+      // 2.1 Si no hay User-Agent, sospechamos pero no bloqueamos de inmediato (10 pts)
+      if (!userAgent || userAgent.trim() === '') {
+        totalScore += 10; 
+        detections.push('Missing User-Agent');
+      }
+
+      // 2.2 Indicadores humanos: muy bajo peso para evitar falsos positivos
+      SCRAPING_PATTERNS.HUMAN_INDICATORS.forEach(header => {
+        // Node.js entrega req.headers en minúsculas siempre
+        if (!headers[header.toLowerCase()]) {
+          totalScore += 1; 
+        }
+      });
+
+      // --- EMISIÓN DE SEÑAL ---
+      // Solo emitimos si hay alguna sospecha. 
+      // El Analizador decidirá si llega al threshold (ej. 15) para emitir la amenaza.
+      if (totalScore > 0) {
+        setImmediate(() => {
+          try {
+            bus.emit(createSignal({
+              type: 'scraping.suspicion',
+              source: 'scrapingDetector',
+              event: signal.event,
+              data: {
+                score: totalScore,
+                threshold: settings.threshold || 15,
+                detections
+              }
+            }));
+          } catch (e) {}
+        });
+      }
+    } catch (err) {
+      // Fail-Open: Si algo falla aquí, la petición sigue su curso normal.
     }
   };
 }
