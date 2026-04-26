@@ -1,45 +1,46 @@
 export const defaultConfig = {
-    apikey: "",
-    telemetry: {
-      enabled: false,
-      endpoint: "http://localhost:4000/api/v1/telemetry"
-    },
+  apikey: process.env.APIGUARD_API_KEY || "", 
+  telemetry: {
+    enabled: false, 
+    endpoint: process.env.APIGUARD_TELEMETRY_URL || ""
+  },
 
   security: {
     detectors: {
       endpointEnumeration: {
         enabled: true,
         windowMS: 60_000,
-        threshold: 10
+        threshold: 15 
       },
 
       bruteForce: {
         enabled: true,
-        authPaths: ['/login'],
+        authPaths: ['/login', '/signin', '/api/auth/login'], 
         methods: ['POST'],
         failureStatusCodes: [401, 403],
-        threshold: 3,
+        threshold: 5, 
         windowMS: 60_000
       },
 
       sqlInjection: {
         enabled: true,
-        threshold: 3, 
+        threshold: 20, 
         checkQuery: true, 
         checkBody: true,  
-        excludeFields: ['password', 'token', 'secret'] 
+        excludeFields: ['password', 'token', 'secret', 'content'] 
       },
 
       noSqlInjection: {
         enabled: true,
-        threshold: 10,
+        threshold: 20,
         checkQuery: true,
-        checkBody: true
+        checkBody: true,
+        excludeFields: ['password', 'token', 'secret', 'content'] 
       },
 
       scraping: {
         enabled: true,
-        threshold: 15,    
+        threshold: 25,
         checkHeaders: true,
         blockSuspiciousAgents: true
       },
@@ -47,23 +48,23 @@ export const defaultConfig = {
       dos: {
         requestFlood: {
           enabled: true,
-          windowMs: 10000,
-          threshold: 10,
-          cooldownMs: 1000
+          windowMs: 10_000,
+          threshold: 100,
+          cooldownMs: 5000
         },
 
         endpointFlood: {
           enabled: true,
           windowMs: 10_000,
-          threshold: 10,
-          cooldownMs: 1000
+          threshold: 50, 
+          cooldownMs: 5000
         },
 
         expensiveEndpoints: {
           enabled: true,
           windowMs: 60_000, 
-          threshold: 5,      
-          endpoints: ['/api/reports/heavy-export', '/api/search', '/api/export', '/api/reports'],
+          threshold: 10, 
+          endpoints: [], 
           cooldownMs: 5000
         }
       }
@@ -73,53 +74,53 @@ export const defaultConfig = {
       'threat.auth_bruteforce': {
         action: 'block',
         scope: 'ip',
-        duration: 300_000
+        duration: 900_000 
       },
 
       'threat.endpoint_enumeration': {
         action: 'delay',
         scope: 'ip',
-        duration: 120_000,
-        delay: { min: 500, max: 4000 }
+        duration: 300_000,
+        delay: { min: 1000, max: 5000 }
       },
 
       'threat.sql_injection': {
         action: 'block', 
         scope: 'ip',
-        duration: 600_000 
+        duration: 3600_000 
       },
 
       'threat.nosql_injection': {
-      action: 'block',
-      scope: 'ip',
-      duration: 600_000
-    },
-
-    'threat.scraping': {
-        action: 'block',   
-        duration: 3600000,      
+        action: 'block',
         scope: 'ip',
-        reason: 'Automated scraping behavior detected'
+        duration: 3600_000
+      },
+
+      'threat.scraping': {
+        action: 'delay', 
+        duration: 600_000,      
+        scope: 'ip',
+        delay: { min: 2000, max: 3000 }
       },
 
       'threat.dos': {
         action: 'delay',
         scope: 'ip',
         duration: 60_000,
-        delay: { min: 200, max: 1000 }
+        delay: { min: 500, max: 2000 }
       },
       
       'threat.dos.expensive_endpoint': {
         action: 'rateLimit',
         scope: 'ip',
         duration: 120_000,
-        rateLimit: { maxRequests: 2, windowMs: 10000 }
+        rateLimit: { maxRequests: 5, windowMs: 60_000 }
       },
     }
   },
 
   http: {
-    ignorePaths: [],
-    slowThreshold: null
+    ignorePaths: ['/favicon.ico', '/robots.txt', '/static/*'], 
+    slowThreshold: 2000 
   }
 };
