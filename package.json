@@ -1,11 +1,11 @@
 {
-  "name": "apiguard-js", 
+  "name": "apiguard-js",
   "version": "1.0.0",
   "description": "High-performance security middleware for Node.js. Real-time protection against DoS, SQLi, NoSQLi and Brute Force.",
   "main": "src/index.js",
   "type": "module",
   "bin": {
-    "apiguard": "./bin/cli.js"
+    "apiguard": "bin/cli.js"
   },
   "files": [
     "src",
@@ -38,7 +38,7 @@
     "url": "git+https://github.com/Omar-nif/APIGuard.git"
   },
   "bugs": {
-    "url": "https://github.com/Omar-nif/APIGuard/issues"  
+    "url": "https://github.com/Omar-nif/APIGuard/issues"
   },
   "homepage": "https://github.com/Omar-nif/APIGuard#readme",
   "devDependencies": {
