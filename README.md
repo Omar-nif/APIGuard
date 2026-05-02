@@ -18,7 +18,7 @@ APIGuard is a robust security layer designed to protect your Express/Node.js API
 ### Installation
 
 ```bash
-npm install apiguard
+npm install apiguard-js
 ```
 
 ### Basic Usage
@@ -48,10 +48,10 @@ APIGuard comes with a command-line interface to help you get started:
 
 ```bash
 # Initialize a default configuration file
-npx apiguard init
+npx apiguard-js init
 
 # Check your current protection status
-npx apiguard status
+npx apiguard-js status
 ```
 
 APIGuard is ready to work out of the box, but you can customize its behavior by creating an `apiguard.config.json` file in your root directory.
