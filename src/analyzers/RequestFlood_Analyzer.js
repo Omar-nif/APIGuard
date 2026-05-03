@@ -19,11 +19,9 @@ export function createRequestFloodAnalyzer({ bus, config }) {
         data: { ...data, analysisTimestamp: Date.now() }
       });
 
-      setImmediate(() => {
         try {
           bus.emit(threat);
         } catch (e) {}
-      });
     } catch (err) {
       // Fail-Open
     }

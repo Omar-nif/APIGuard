@@ -10,7 +10,7 @@ export function createExpensiveEndpointAnalyzer({ bus, config }) {
     windowMs = 60_000,
     threshold = 5,
     cooldownMs = 5000,
-    maxTrackedIps = 10000 // Límite de seguridad para la RAM
+    maxTrackedIps = 10000 
   } = settings;
 
   const state = new Map();
@@ -71,11 +71,9 @@ export function createExpensiveEndpointAnalyzer({ bus, config }) {
         lastDetection.set(ip, now);
         state.delete(ip); // Reiniciamos contador tras detectar
 
-        setImmediate(() => {
           try {
             bus.emit(threat);
           } catch (e) {}
-        });
       }
     } catch (err) {
       // Fail-Open

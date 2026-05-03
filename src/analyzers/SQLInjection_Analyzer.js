@@ -27,12 +27,10 @@ export function createSQLInjectionAnalyzer({ bus }) {
           }
         });
 
-        // Emitimos asíncronamente para no retrasar la respuesta actual si el bus está cargado
-        setImmediate(() => {
+
           try {
             bus.emit(threatSignal);
           } catch (e) { /* Error silencioso en el bus */ }
-        });
       }
     } catch (err) {
       // Fail-Safe: Si el analizador explota, no hacemos nada y dejamos que la petición siga.

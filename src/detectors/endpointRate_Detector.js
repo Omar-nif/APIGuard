@@ -8,7 +8,7 @@ export function createEndpointRateDetector({ bus, config = {} }) {
     windowMs = 10000,
     threshold = 40,
     cooldownMs = 5000,
-    maxTrackedKeys = 20000 // Límite crítico para evitar desbordamiento por IP:Path
+    maxTrackedKeys = 20000 
   } = config;
   
   if (!enabled) return () => {};
@@ -16,7 +16,6 @@ export function createEndpointRateDetector({ bus, config = {} }) {
   const endpointStats = new Map();
   const lastSignal = new Map();
 
-  // 🔥 LIMPIEZA DESACOPLADA (Conserje)
   const cleanupInterval = setInterval(() => {
     const now = Date.now();
     for (const [key, stats] of endpointStats.entries()) {
@@ -68,7 +67,6 @@ export function createEndpointRateDetector({ bus, config = {} }) {
 
         lastSignal.set(key, now);
 
-        setImmediate(() => {
           try {
             bus.emit(createSignal({
               type: 'endpoint.high_rate',
@@ -78,7 +76,6 @@ export function createEndpointRateDetector({ bus, config = {} }) {
               data: { ip, path, requests: stats.count, windowMs }
             }));
           } catch (e) {}
-        });
       }
     } catch (err) {
       // Fail-Open

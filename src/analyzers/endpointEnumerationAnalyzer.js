@@ -52,12 +52,9 @@ export function createEndpointEnumerationAnalyzer(options = {}) {
         }
       });
 
-      // Emitimos asíncronamente
-      setImmediate(() => {
         try {
           bus.emit(threatSignal);
         } catch (e) {}
-      });
 
       state.delete(ip); // Limpiamos tras la detección
     }

@@ -1,7 +1,7 @@
 async function simulateBruteForce() {
   console.log("Iniciando simulación de Fuerza Bruta...");
 
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= 100; i++) {
     try {
       const res = await fetch('http://localhost:3000/login', {
         method: 'POST',

@@ -67,8 +67,6 @@ export function createRequestRateDetector({ bus, config = {} }) {
 
         lastSignal.set(ip, now);
 
-        // Emitimos asíncronamente
-        setImmediate(() => {
           try {
             bus.emit(createSignal({
               type: 'request.high_rate',
@@ -78,7 +76,6 @@ export function createRequestRateDetector({ bus, config = {} }) {
               data: { ip, requests: stats.count, windowMs }
             }));
           } catch (e) {}
-        });
       }
     } catch (err) {
       // Fail-Open

@@ -1,5 +1,4 @@
 import { createSignalBus } from './signalBus.js';
-import { createLogThreatAction } from '../actions/logThreatAction.js';
 import { createTelemetryReporter } from './reporter.js';
 
 // Threats
@@ -17,9 +16,6 @@ import { createDecisionEngine } from './decision/decisionEngine.js';
 export function createApiguardCore(config) {
 
   const bus = createSignalBus();
-
-  const logAction = createLogThreatAction(); 
-  bus.registerAction(logAction);
 
   // ================DECISION SYSTEM ==============================
   const decisionStore = createDecisionStore();
@@ -68,15 +64,14 @@ export function createApiguardCore(config) {
   createTelemetryReporter( { bus, config,});
   
 // --------------------------------------------------------------------------
-  return {
-    process(event) {
-      bus.emit({
-        type: 'request', 
-        event,
-        source: 'apiguardCore'
-      });
-    },
-
-    decisionStore 
-  };
+return {
+  process(event) {
+    bus.emit({
+      type: event.stage || 'request', 
+      event,
+      source: 'apiguardCore'
+    });
+  },
+  decisionStore 
+};
 }

@@ -69,12 +69,9 @@ export function createEndpointEntropyDetector({
           }
         });
 
-        // Emitimos asíncronamente para no bloquear el procesamiento del request
-        setImmediate(() => {
           try {
             bus.emit(entropySignal);
           } catch (e) {}
-        });
       }
     } catch (err) {
       // Fail-Open: Si el cálculo falla, la vida sigue
