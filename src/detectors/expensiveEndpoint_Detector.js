@@ -18,7 +18,6 @@ export function createExpensiveEndpointDetector({ bus, config }) {
       // Verificamos si el path actual es uno de los marcados como "costosos"
       if (endpoints.includes(path)) {
         // Emitimos asíncronamente para no retrasar el inicio del procesamiento del request
-        setImmediate(() => {
           try {
             bus.emit(createSignal({
               type: 'dos.expensive_access',
@@ -27,7 +26,6 @@ export function createExpensiveEndpointDetector({ bus, config }) {
               data: { path, method }
             }));
           } catch (e) {}
-        });
       }
     } catch (err) {
       // Fail-Open

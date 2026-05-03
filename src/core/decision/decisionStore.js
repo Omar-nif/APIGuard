@@ -40,7 +40,6 @@ export function createDecisionStore({
     const now = Date.now();
     const { ip, path } = requestContext;
 
-    // ESTRATEGIA DE BÚSQUEDA RÁPIDA (O(1) en lugar de O(n))
     // 1. Buscar coincidencia específica (IP + Path)
     // 2. Buscar coincidencia general (Solo IP)
     const specificKey = `${ip}:${path}`;

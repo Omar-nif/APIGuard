@@ -67,12 +67,9 @@ export function createEndpointDiversityDetector(options = {}) {
           data: { ip, pathsTried: paths.size, windowMs }
         });
 
-        // Asincronía para no penalizar el request
-        setImmediate(() => {
           try {
             bus.emit(diversitySignal);
           } catch (e) {}
-        });
 
         // Limpiamos la IP tras detectar para liberar memoria inmediatamente
         state.delete(ip);

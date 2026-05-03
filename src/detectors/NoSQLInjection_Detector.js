@@ -90,9 +90,7 @@ export function createNoSQLInjectionDetector({ bus, config }) {
           }
         });
 
-        setImmediate(() => {
           try { bus.emit(suspicion); } catch (e) {}
-        });
       }
     } catch (err) {
       // Fail-Open

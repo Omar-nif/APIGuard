@@ -31,14 +31,11 @@ export function createNotFoundDetector({ bus }) {
         }
       });
 
-      // ⚡ Asincronía: Emitimos fuera del hilo principal
-      setImmediate(() => {
         try {
           bus.emit(notFoundSignal);
         } catch (e) {
           // Error en el bus ignorado
         }
-      });
     } catch (err) {
       // Fail-Open: Si el detector falla, el usuario sigue recibiendo su 404 normalmente
     }

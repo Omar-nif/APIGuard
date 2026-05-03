@@ -71,7 +71,7 @@ export function createAuthBruteForceAnalyzer({ bus, config }) {
   }
 
   return function authBruteForceAnalyzer(signal) {
-    // Escuchamos la señal que emite nuestro detector corregido
+    // Escuchamos la señal que emite nuestro detector
     if (!signal || signal.type !== 'auth.failed') return;
 
     const ip = signal.event?.request?.ip || signal.data?.ip;

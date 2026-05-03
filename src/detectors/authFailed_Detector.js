@@ -22,12 +22,11 @@ export function createAuthFailedDetector({ bus, config }) {
       if (!request || !response) return;
 
       // 2. Verificaciones de corto circuito síncronas
-      // Usamos startsWith o includes dependiendo de si quieres rutas exactas
       if (!authPaths.some(p => request.path === p)) return;
       if (methods.length > 0 && !methods.includes(request.method)) return;
       if (!failureStatusCodes.includes(response.statusCode)) return;
 
-      // 3. Extracción de identidad (muy importante para el log/analizador)
+      // 3. Extracción de identidad 
       const username = request.body && typeof request.body === 'object' 
         ? (request.body.username || request.body.email || 'unknown') 
         : 'unknown';

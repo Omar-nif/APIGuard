@@ -41,10 +41,7 @@ export function createScrapingDetector({ bus, config }) {
       });
 
       // --- EMISIÓN DE SEÑAL ---
-      // Solo emitimos si hay alguna sospecha. 
-      // El Analizador decidirá si llega al threshold (ej. 15) para emitir la amenaza.
       if (totalScore > 0) {
-        setImmediate(() => {
           try {
             bus.emit(createSignal({
               type: 'scraping.suspicion',
@@ -57,7 +54,6 @@ export function createScrapingDetector({ bus, config }) {
               }
             }));
           } catch (e) {}
-        });
       }
     } catch (err) {
       // Fail-Open: Si algo falla aquí, la petición sigue su curso normal.

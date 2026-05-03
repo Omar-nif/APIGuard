@@ -29,7 +29,6 @@ export function createDecisionEngine({ bus, decisionStore, config }) {
 
     if (!ip) return null;
 
-    // --- PUNTO CLAVE ---
     // Si ya existe una decisión, heredamos su "match" original para no crear llaves duplicadas
     // Si no existe, usamos el scope definido en la política.
     const match = existing ? { ...existing.match } : { ip };
@@ -56,25 +55,64 @@ export function createDecisionEngine({ bus, decisionStore, config }) {
     };
   }
 
+  const THREAT_NAMES = {
+    'threat.auth_bruteforce': 'Ataque de fuerza bruta',
+    'threat.endpoint_enumeration': 'Enumeración de endpoints',
+    'threat.dos.endpoint_flood': 'Inundación de peticiones a endpoint (DoS)',
+    'threat.dos.expensive_endpoint': 'Abuso de endpoints costosos (DoS)',
+    'threat.nosql_injection': 'Inyección NoSQL',
+    'threat.dos.request_flood': 'Inundación masiva de peticiones (Flood)',
+    'threat.scraping': 'Extracción de datos no autorizada (Scraping)',
+    'threat.sql_injection': 'Inyección SQL'
+  };
+  
+  const ACTION_NAMES = {
+    'block': 'bloqueo total',
+    'delay': 'retardo de respuesta',
+    'rateLimit': 'límite de velocidad',
+    'monitor': 'monitoreo preventivo'
+  };
+
   function handleThreat(signal) {
     if (signal.level !== 'high') return;
-
+  
     const policy = resolvePolicy(signal.type);
     if (!policy) return;
-
+  
     const context = {
       ip: String(signal.event?.request?.ip || signal.data?.ip || '').trim(),
       path: signal.event?.request?.path || signal.data?.path || ''
     };
-
-    // 1. Buscamos si ya hay un castigo
+  
     const existing = decisionStore.match(context);
-
-    // 2. Construimos la decisión (respetando el match anterior si existe)
     const decision = buildDecision(policy, signal, existing);
     
     if (decision) {
       decisionStore.register(decision);
+  
+      // --- NUEVO: Log Detallado ---
+      const timestamp = new Date().toLocaleTimeString();
+
+      // Traducimos los términos o usamos el original si no existe traducción
+      const threatHumanName = THREAT_NAMES[signal.type] || signal.type;
+      const actionHumanName = ACTION_NAMES[decision.action] || decision.action;
+
+      const actionEmoji = {
+        block: 'BLOCK',
+        delay: 'DELAY',
+        rateLimit: 'RATE_LIMIT',
+        monitor: 'MONITOR'
+      }[decision.action] || decision.action;
+  
+      console.warn(
+        `\n -----------------------------------------` +
+        `[APIGuard][${timestamp}]   SYSTEM ACTION\n` +
+        ` > Evento:  ${threatHumanName}\n` +
+        ` > Acción:  ${actionEmoji.toUpperCase()} aplicado a ${context.ip}\n` +
+        ` > Motivo:  Se detectó un ${threatHumanName.toLowerCase()} y se aplicó un ${actionHumanName} para detenerlo.\n` +
+        ` > Duración: ${decision.duration / 1000}s\n` +
+        ` -----------------------------------------`
+      );
     }
   }
 

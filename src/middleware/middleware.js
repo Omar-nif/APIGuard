@@ -35,7 +35,6 @@ export default function createApiguardMiddleware({
           return applyDecision({ decision, req, res, next });
         }
       } catch (err) {
-        console.error('[APIGuard] Pre-check Error:', err);
       }
 
       /* ---------------------------------------------------------
@@ -48,15 +47,8 @@ export default function createApiguardMiddleware({
           stage: 'request'
         });
 
-        // Al ser el Bus síncrono, esto ejecutará toda la cadena de 
-        // Detectores -> Analizadores -> Engine -> Store.register()
         onRequest(immediateEvent);
 
-        /**
-         * EL SEGUNDO ESCUDO (Recuperado de la versión antigua):
-         * Si el análisis de arriba detectó algo justo ahora, 
-         * el match lo encontrará aquí y cortará la petición.
-         */
         const immediateDecision = decisionStore.match(context);
         if (immediateDecision && immediateDecision.action === 'block') {
           return applyDecision({ decision: immediateDecision, req, res, next });
@@ -67,6 +59,7 @@ export default function createApiguardMiddleware({
          3. ANÁLISIS POST-RESPONSE (Aprendizaje)
          --------------------------------------------------------- */
       res.on('finish', () => {
+        //console.log(`[DEBUG] Respuesta terminada. Status: ${res.statusCode} | Path: ${req.path}`);
         try {
           const duration = Date.now() - startTime;
           const finalEvent = createRequestEvent({
