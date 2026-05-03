@@ -105,13 +105,13 @@ export function createDecisionEngine({ bus, decisionStore, config }) {
       }[decision.action] || decision.action;
   
       console.warn(
-        `\n -----------------------------------------` +
-        `[APIGuard][${timestamp}]   SYSTEM ACTION\n` +
+        `\n| -----------------------------------------|` +
+        `\n[APIGuard][${timestamp}]   SYSTEM ACTION\n ` +
         ` > Evento:  ${threatHumanName}\n` +
         ` > Acción:  ${actionEmoji.toUpperCase()} aplicado a ${context.ip}\n` +
         ` > Motivo:  Se detectó un ${threatHumanName.toLowerCase()} y se aplicó un ${actionHumanName} para detenerlo.\n` +
         ` > Duración: ${decision.duration / 1000}s\n` +
-        ` -----------------------------------------`
+        `|-----------------------------------------|`
       );
     }
   }
