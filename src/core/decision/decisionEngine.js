@@ -24,26 +24,25 @@ export function createDecisionEngine({ bus, decisionStore, config }) {
   }
 
   function buildDecision(policy, signal, existing) {
-    // Normalizamos los datos de entrada
     const ip = String(signal.event?.request?.ip || signal.data?.ip || '').trim();
     const path = signal.event?.request?.path || signal.data?.path || '';
 
     if (!ip) return null;
 
-    // 1. Definir el alcance (Match)
-    // CRÍTICO: Debe coincidir con la estructura que el Store espera para crear la llave
-    const match = { ip };
-    if (policy.scope?.includes('path') && path) {
+    // --- PUNTO CLAVE ---
+    // Si ya existe una decisión, heredamos su "match" original para no crear llaves duplicadas
+    // Si no existe, usamos el scope definido en la política.
+    const match = existing ? { ...existing.match } : { ip };
+    
+    if (!existing && policy.scope?.includes('path') && path) {
       match.path = path;
     }
 
-    // 2. Determinar la acción
     let action = policy.action || 'monitor';
-    let duration = policy.duration || 60000; // Default 1 min si no hay política
+    let duration = policy.duration || 60000;
 
     if (existing) {
       action = escalateAction(existing.action);
-      // Penalización: Duplicamos la duración
       duration = (existing.duration || 60000) * 2;
     }
 
@@ -58,22 +57,20 @@ export function createDecisionEngine({ bus, decisionStore, config }) {
   }
 
   function handleThreat(signal) {
-    // Solo actuamos ante amenazas confirmadas (high)
     if (signal.level !== 'high') return;
 
     const policy = resolvePolicy(signal.type);
     if (!policy) return;
 
-    // Contexto normalizado para buscar en el Store
     const context = {
       ip: String(signal.event?.request?.ip || signal.data?.ip || '').trim(),
       path: signal.event?.request?.path || signal.data?.path || ''
     };
 
-    // 1. Buscar si ya hay un castigo activo para este sujeto
+    // 1. Buscamos si ya hay un castigo
     const existing = decisionStore.match(context);
 
-    // 2. Construir la nueva decisión (Nueva o Escalada)
+    // 2. Construimos la decisión (respetando el match anterior si existe)
     const decision = buildDecision(policy, signal, existing);
     
     if (decision) {
@@ -81,7 +78,6 @@ export function createDecisionEngine({ bus, decisionStore, config }) {
     }
   }
 
-  // El motor se suscribe a las señales de tipo "threat.*"
   bus.registerAction(handleThreat);
 
   return {};

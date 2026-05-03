@@ -15,21 +15,27 @@ export function createAuthFailedDetector({ bus, config }) {
   return function authFailedDetector(signal) {
     try {
       const event = signal.event;
+      // 1. Solo actuamos en la fase de respuesta
       if (!event || event.stage !== 'response') return;
 
       const { request, response } = event;
       if (!request || !response) return;
 
-      if (!authPaths.includes(request.path)) return;
-      //if (!methods.includes(request.method)) return;
+      // 2. Verificaciones de corto circuito síncronas
+      // Usamos startsWith o includes dependiendo de si quieres rutas exactas
+      if (!authPaths.some(p => request.path === p)) return;
+      if (methods.length > 0 && !methods.includes(request.method)) return;
       if (!failureStatusCodes.includes(response.statusCode)) return;
 
-      // Extracción segura de datos
+      // 3. Extracción de identidad (muy importante para el log/analizador)
       const username = request.body && typeof request.body === 'object' 
         ? (request.body.username || request.body.email || 'unknown') 
         : 'unknown';
 
-      const authSignal = createSignal({
+      // 4. EMISIÓN SÍNCRONA
+      // Como el bus es síncrono, para cuando esta línea termine, 
+      // la decisión de bloqueo ya estará en el Store.
+      bus.emit(createSignal({
         type: 'auth.failed',
         level: 'low',
         source: 'authFailedDetector',
@@ -40,9 +46,7 @@ export function createAuthFailedDetector({ bus, config }) {
           username,
           statusCode: response.statusCode
         }
-      });
-
-      bus.emit(authSignal);
+      }));
 
     } catch (err) {
     }
