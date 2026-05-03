@@ -22,8 +22,6 @@ export function createSignalBus() {
     emit(signal) {
       if (!signal || typeof signal.type !== 'string') return;
 
-      // Usamos setImmediate para que el análisis sea asíncrono y no bloquee la API
-      setImmediate(() => {
         // 1. Detectores: Procesan eventos base (entrada/salida)
         if (signal.type === 'request' || signal.type === 'response') {
           for (const detector of detectors) {
@@ -42,7 +40,6 @@ export function createSignalBus() {
             try { action(signal); } catch (e) { }
           }
         }
-      });
     }
   };
 }

@@ -40,19 +40,19 @@
         },
         "dos": {
           "requestFlood": {
-            "enabled": true,
+            "enabled": false,
             "windowMs": 10000,
             "threshold": 10,
             "cooldownMs": 1000
           },
           "endpointFlood": {
-            "enabled": true,
+            "enabled": false,
             "windowMs": 10000,
             "threshold": 10,
             "cooldownMs": 1000
           },
           "expensiveEndpoints": {
-            "enabled": true,
+            "enabled": false,
             "windowMs": 60000,
             "threshold": 5,
             "endpoints": ["/api/reports/heavy-export", "/api/search", "/api/export", "/api/reports"],

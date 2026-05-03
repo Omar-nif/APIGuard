@@ -9,29 +9,38 @@ export function createAuthBruteForceAnalyzer({ bus, config }) {
   const {
     windowMS = 60_000,
     threshold = 5,
-    maxTrackedIps = 10000 // Límite de seguridad: no rastrear más de 10k IPs simultáneas
+    maxTrackedIps = 10000 
   } = bruteForce;
 
   const state = new Map();
 
   function getState(ip) {
-    if (!state.has(ip)) {
-      // PROTECCIÓN: Si superamos el límite, borramos la IP más antigua antes de añadir una nueva
+    const now = Date.now();
+    let data = state.get(ip);
+
+    // Si la IP existe pero el último intento fue hace mucho, reseteamos su ventana
+    if (data && (now - data.lastSeen > windowMS)) {
+      state.delete(ip);
+      data = null;
+    }
+
+    if (!data) {
       if (state.size >= maxTrackedIps) {
         const oldestIp = state.keys().next().value;
         state.delete(oldestIp);
       }
 
-      state.set(ip, {
+      data = {
         attempts: 0,
-        firstSeen: Date.now(),
-        lastSeen: Date.now()
-      });
+        firstSeen: now,
+        lastSeen: now
+      };
+      state.set(ip, data);
     }
-    return state.get(ip);
+    return data;
   }
 
-  // LIMPIEZA ACTIVA: Periódicamente borramos IPs que dejaron de atacar
+  // Limpieza pasiva para evitar fugas de memoria de IPs que nunca volvieron
   const cleanupInterval = setInterval(() => {
     const now = Date.now();
     for (const [ip, data] of state.entries()) {
@@ -39,13 +48,13 @@ export function createAuthBruteForceAnalyzer({ bus, config }) {
         state.delete(ip);
       }
     }
-  }, windowMS).unref(); // .unref() para no bloquear el cierre de Node.js
+  }, windowMS * 2).unref();
 
   function evaluate(ip, data, signal) {
     if (data.attempts >= threshold) {
       const threatSignal = createSignal({
         type: 'threat.auth_bruteforce',
-        level: 'high',
+        level: 'high', 
         source: 'authBruteForceAnalyzer',
         event: signal.event,
         data: {
@@ -56,15 +65,16 @@ export function createAuthBruteForceAnalyzer({ bus, config }) {
       });
 
       bus.emit(threatSignal);
-      // Una vez detectado y mandado a bloquear, ya no necesitamos rastrearlo aquí
+      
       state.delete(ip); 
     }
   }
 
   return function authBruteForceAnalyzer(signal) {
+    // Escuchamos la señal que emite nuestro detector corregido
     if (!signal || signal.type !== 'auth.failed') return;
 
-    const ip = signal.event.request.ip || signal.data?.ip;
+    const ip = signal.event?.request?.ip || signal.data?.ip;
     if (!ip) return;
 
     const data = getState(ip);

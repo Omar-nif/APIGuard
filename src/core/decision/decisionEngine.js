@@ -1,12 +1,11 @@
-//console.log("DEBUG: Decision Engine Factory Called"); // Añade esto arriba
-
 export function createDecisionEngine({ bus, decisionStore, config }) {
   const policies = config.security?.policies ?? {};
 
   const ESCALATION = {
+    monitor: 'delay',
     delay: 'rateLimit',
     rateLimit: 'block',
-    block: 'block' // Techo del escalado
+    block: 'block' 
   };
 
   function escalateAction(currentAction) {
@@ -24,30 +23,28 @@ export function createDecisionEngine({ bus, decisionStore, config }) {
     return null;
   }
 
-  /**
-   * Crea el objeto de decisión final basado en la política y el historial
-   */
   function buildDecision(policy, signal, existing) {
-    const ip = signal.event?.request?.ip || signal.data?.ip;
-    const path = signal.event?.request?.path || signal.data?.path;
+    // Normalizamos los datos de entrada
+    const ip = String(signal.event?.request?.ip || signal.data?.ip || '').trim();
+    const path = signal.event?.request?.path || signal.data?.path || '';
 
     if (!ip) return null;
 
-    // 1. Definir el alcance (Match) de la decisión
-    const match = {};
-    if (policy.scope?.includes('ip')) match.ip = ip;
-    if (policy.scope?.includes('path') && path) match.path = path;
+    // 1. Definir el alcance (Match)
+    // CRÍTICO: Debe coincidir con la estructura que el Store espera para crear la llave
+    const match = { ip };
+    if (policy.scope?.includes('path') && path) {
+      match.path = path;
+    }
 
-    // 2. Determinar la acción (Escalar si ya existe una)
-    let action = policy.action;
-    let duration = policy.duration;
+    // 2. Determinar la acción
+    let action = policy.action || 'monitor';
+    let duration = policy.duration || 60000; // Default 1 min si no hay política
 
     if (existing) {
       action = escalateAction(existing.action);
-      // Penalización: Duplicamos la duración si es reincidente
-      duration = existing.duration * 2;
-      
-      //console.log(`[ENGINE] Escalando de ${existing.action} a ${action} para ${ip}`);
+      // Penalización: Duplicamos la duración
+      duration = (existing.duration || 60000) * 2;
     }
 
     return {
@@ -60,33 +57,31 @@ export function createDecisionEngine({ bus, decisionStore, config }) {
     };
   }
 
-  /**
-   * Manejador principal de señales de amenaza
-   */
   function handleThreat(signal) {
-
+    // Solo actuamos ante amenazas confirmadas (high)
     if (signal.level !== 'high') return;
 
     const policy = resolvePolicy(signal.type);
     if (!policy) return;
 
-    // Contexto completo para que decisionStore.match funcione correctamente
+    // Contexto normalizado para buscar en el Store
     const context = {
       ip: String(signal.event?.request?.ip || signal.data?.ip || '').trim(),
-      path: signal.event?.request?.path || signal.data?.path
+      path: signal.event?.request?.path || signal.data?.path || ''
     };
-    // 1. Buscar decisión previa usando el contexto corregido
-    //console.log("BUSCANDO PREVIA PARA:", context.ip);
+
+    // 1. Buscar si ya hay un castigo activo para este sujeto
     const existing = decisionStore.match(context);
-    //console.log("EXISTING DECISION?", existing?.action || 'none');
 
-    // 2. Construir la nueva decisión (con escalado interno)
+    // 2. Construir la nueva decisión (Nueva o Escalada)
     const decision = buildDecision(policy, signal, existing);
-    if (!decision) return;
-
-    decisionStore.register(decision);
+    
+    if (decision) {
+      decisionStore.register(decision);
+    }
   }
 
+  // El motor se suscribe a las señales de tipo "threat.*"
   bus.registerAction(handleThreat);
 
   return {};

@@ -1,5 +1,5 @@
 import { createRequestEvent } from '../events/requestEvent.js';
-import  generateRequestId  from '../utils/generateRequestId.js';
+import generateRequestId from '../utils/generateRequestId.js';
 import { applyDecision } from '../core/decision/applyDecision.js';
 
 export default function createApiguardMiddleware({ 
@@ -16,52 +16,61 @@ export default function createApiguardMiddleware({
   }
 
   const {
-    ignorePaths = [],
-    slowThreshold = null
+    ignorePaths = []
   } = config.http || {};
 
   return function apiGuardMiddleware(req, res, next) {
     try {
       const startTime = Date.now();
       const id = generateRequestId();
+      const path = req.path;
 
-      // 1. PRE-CHECK: Si falla el store, dejamos pasar (Fail-Open)
-      let decision;
+      // 1. PRE-CHECK: Bloqueo inmediato si ya existe una decisión.
       try {
-        decision = decisionStore.match({ ip: req.ip, path: req.path });
+        const decision = decisionStore.match({ ip: req.ip, path });
+        if (decision) {
+          return applyDecision({ decision, req, res, next });
+        }
       } catch (err) {
-        // Error interno de APIGuard, seguimos adelante sin bloquear
-        return next();
+        // Fail-Open: Si falla el store, no detenemos la API.
+        console.error('[APIGuard] DecisionStore Match Error:', err);
       }
 
-      if (decision) return applyDecision({ decision, req, res, next });
-
-      // 2. ANALISIS DE INTRUSIÓN
-      // Envolvemos onRequest en un try/catch para que un error en un detector
-      // no detenga la petición del cliente.
+      // 2. ANÁLISIS DE ENTRADA (Stage: request)
       try {
         const immediateEvent = createRequestEvent({
-          id, startTime, duration: 0, req, res, ignored: false, stage: 'request'
+          id, 
+          startTime, 
+          duration: 0, 
+          req, 
+          res, 
+          ignored: ignorePaths.includes(path), 
+          stage: 'request'
         });
         onRequest(immediateEvent);
-      } catch (e) { /* Error silencioso: la seguridad falló, pero la API sigue viva */ }
+      } catch (e) { /* Fail-Open */ }
 
-      // 3. ANALISIS POST-RESPONSE
       res.on('finish', () => {
         try {
           const duration = Date.now() - startTime;
           const finalEvent = createRequestEvent({
-            id, startTime, duration, req, res, 
-            ignored: config.http?.ignorePaths?.includes(req.path),
+            id, 
+            startTime, 
+            duration, 
+            req, 
+            res, 
+            ignored: ignorePaths.includes(path),
             stage: 'response' 
           });
+          
           onRequest(finalEvent); 
-        } catch (e) { /* Ignoramos errores en la fase de respuesta */ }
+        } catch (e) { /* Fail-Open */ }
       });
 
       next();
     } catch (globalError) {
-      // ÚLTIMA LÍNEA DE DEFENSA: Si todo falla, next() asegura que la API responda.
+      // ÚLTIMA LÍNEA DE DEFENSA
+      console.error('[APIGuard] Global Middleware Error:', globalError);
       next();
     }
   };

@@ -14,21 +14,17 @@ export function createAuthFailedDetector({ bus, config }) {
 
   return function authFailedDetector(signal) {
     try {
-      // 1. Filtrado rápido y eficiente
-      if (!signal || signal.type !== 'request') return;
-
       const event = signal.event;
-      if (!event || event.meta?.ignored) return;
+      if (!event || event.stage !== 'response') return;
 
       const { request, response } = event;
       if (!request || !response) return;
 
-      // Verificaciones de corto circuito
       if (!authPaths.includes(request.path)) return;
-      if (!methods.includes(request.method)) return;
+      //if (!methods.includes(request.method)) return;
       if (!failureStatusCodes.includes(response.statusCode)) return;
 
-      // Extracción segura de datos del cuerpo (evitar errores si body es null/string)
+      // Extracción segura de datos
       const username = request.body && typeof request.body === 'object' 
         ? (request.body.username || request.body.email || 'unknown') 
         : 'unknown';
@@ -46,16 +42,9 @@ export function createAuthFailedDetector({ bus, config }) {
         }
       });
 
-      // Asincronía: No retrasamos el flujo de la respuesta
-      setImmediate(() => {
-        try {
-          bus.emit(authSignal);
-        } catch (e) {
-          // Error en el bus silenciado
-        }
-      });
+      bus.emit(authSignal);
+
     } catch (err) {
-      // Fail-Open: Si el detector falla, la API sigue funcionando normalmente
     }
   };
 }
