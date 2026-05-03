@@ -1,6 +1,6 @@
 {
   "name": "apiguard-js",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "High-performance security middleware for Node.js. Real-time protection against DoS, SQLi, NoSQLi and Brute Force.",
   "main": "src/index.js",
   "type": "module",
