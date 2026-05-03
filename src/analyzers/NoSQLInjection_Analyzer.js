@@ -30,15 +30,11 @@ export function createNoSQLInjectionAnalyzer({ bus }) {
           }
         });
 
-        // Asincronía: Emitimos fuera del tick actual para 
-        // asegurar que la respuesta de la API sea la prioridad.
-        setImmediate(() => {
           try {
             bus.emit(threatSignal);
           } catch (e) {
             // Error en el bus ignorado para mantener estabilidad
           }
-        });
       }
     } catch (err) {
       // Si el análisis falla, el "Fail-Open" permite que la API siga viva.

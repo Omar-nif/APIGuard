@@ -1,8 +1,6 @@
-import crypto from 'crypto';
-
 export function createDecisionStore({ 
   cleanupInterval = 30_000,
-  maxEntries = 5000 // Límite de seguridad para la RAM
+  maxEntries = 5000 
 } = {}) {
   const store = new Map();
 
@@ -13,70 +11,49 @@ export function createDecisionStore({
     monitor: 1
   };
 
+  // Función auxiliar para crear una llave consistente
+  function buildKey(match) {
+    // Si el match tiene IP y Path, la llave es "ip:path"
+    // Si solo tiene IP, es "ip:"
+    return `${match.ip || ''}:${match.path || ''}`;
+  }
+
   function register(decision) {
-    const key = buildKey(decision.match);
+    try {
+      const key = buildKey(decision.match);
 
-    // PROTECCIÓN DE MEMORIA:
-    // Si el store está lleno y vamos a insertar una llave nueva
-    if (store.size >= maxEntries && !store.has(key)) {
-      // Estrategia: Eliminar la entrada más antigua (la primera del Map)
-      const firstKey = store.keys().next().value;
-      store.delete(firstKey);
+      if (store.size >= maxEntries && !store.has(key)) {
+        const firstKey = store.keys().next().value;
+        store.delete(firstKey);
+      }
+
+      store.set(key, {
+        ...decision,
+        expiresAt: Date.now() + decision.duration
+      });
+    } catch (e) {
+      // Fail-open
     }
-
-    store.set(key, {
-      ...decision,
-      expiresAt: Date.now() + decision.duration
-    });
   }
 
-  function isMatch(matchCriteria, requestContext) {
-    const criteriaKeys = Object.keys(matchCriteria);
-    if (criteriaKeys.length === 0) return false;
-  
-    return criteriaKeys.every(key => {
-      // Forzamos a String y quitamos espacios por si acaso
-      const criteriaVal = String(matchCriteria[key]).trim();
-      const contextVal = String(requestContext[key] || '').trim();
-  
-      return criteriaVal === contextVal;
-    });
-  }
-  
   function match(requestContext) {
     const now = Date.now();
-    let bestDecision = null;
-    let highestSpecificity = -1;
-    let highestPriority = -1;
+    const { ip, path } = requestContext;
 
-    const expiredKeys = [];
+    // 1. Buscar coincidencia específica (IP + Path)
+    // 2. Buscar coincidencia general (Solo IP)
+    const specificKey = `${ip}:${path}`;
+    const generalKey = `${ip}:`;
 
-    // Iteramos el store
-    for (const [key, decision] of store.entries()) {
-      if (decision.expiresAt <= now) {
-        expiredKeys.push(key);
-        continue;
-      }
+    const candidates = [store.get(specificKey), store.get(generalKey)]
+      .filter(d => d && d.expiresAt > now);
 
-      if (isMatch(decision.match, requestContext)) {
-        const specificity = Object.keys(decision.match).length;
-        const priority = ACTION_PRIORITY[decision.action] ?? 0;
+    if (candidates.length === 0) return null;
 
-        if (
-          specificity > highestSpecificity ||
-          (specificity === highestSpecificity && priority > highestPriority)
-        ) {
-          highestSpecificity = specificity;
-          highestPriority = priority;
-          bestDecision = decision;
-        }
-      }
-    }
-
-    // Limpieza de expirados encontrada durante el match
-    expiredKeys.forEach(k => store.delete(k));
-
-    return bestDecision;
+    // Si hay varios, elegimos por prioridad de acción
+    return candidates.sort((a, b) => 
+      (ACTION_PRIORITY[b.action] || 0) - (ACTION_PRIORITY[a.priority] || 0)
+    )[0];
   }
 
   function cleanup() {

@@ -8,6 +8,7 @@ export function createRequestEvent({
     duration,       // Cuánto tardó (calculado en el middleware)
     req,            // Objeto de petición de Express
     res,            // Objeto de respuesta de Express
+    stage,
     slowThreshold = null, // El límite de tiempo definido por el usuario
     ignored = false,      // Si el usuario pidió ignorar esta ruta
     error = null          // Si hubo algún error en el proceso
@@ -21,6 +22,7 @@ export function createRequestEvent({
     // Retornamos un objeto limpio y organizado
     return {
       id,
+      stage,
       timestamp: startTime, // Guardamos el momento exacto del evento
   
       // --- DATOS DEL CLIENTE  ---

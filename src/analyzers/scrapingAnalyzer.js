@@ -31,14 +31,11 @@ export function createScrapingAnalyzer({ bus }) {
           }
         });
 
-        // Asincronía para no penalizar el tiempo de respuesta del usuario legítimo
-        setImmediate(() => {
           try {
             bus.emit(threatSignal);
           } catch (e) {
             // Silencio en caso de error en suscriptores del bus
           }
-        });
       }
     } catch (err) {
       // Fail-Open: Si el análisis falla, el servidor sigue funcionando

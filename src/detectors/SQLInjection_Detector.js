@@ -77,12 +77,9 @@ export function createSQLInjectionDetector({ bus, config }) {
           }
         });
 
-        // Emisión asíncrona
-        setImmediate(() => {
           try {
             bus.emit(suspicionSignal);
           } catch (e) {}
-        });
       }
     } catch (err) {
       // Fail-Open: Si el escaneo falla por estructura compleja, no tiramos la app.

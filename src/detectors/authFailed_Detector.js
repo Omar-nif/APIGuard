@@ -14,26 +14,27 @@ export function createAuthFailedDetector({ bus, config }) {
 
   return function authFailedDetector(signal) {
     try {
-      // 1. Filtrado rápido y eficiente
-      if (!signal || signal.type !== 'request') return;
-
       const event = signal.event;
-      if (!event || event.meta?.ignored) return;
+      // 1. Solo actuamos en la fase de respuesta
+      if (!event || event.stage !== 'response') return;
 
       const { request, response } = event;
       if (!request || !response) return;
 
-      // Verificaciones de corto circuito
-      if (!authPaths.includes(request.path)) return;
-      if (!methods.includes(request.method)) return;
+      // 2. Verificaciones de corto circuito síncronas
+      if (!authPaths.some(p => request.path === p)) return;
+      if (methods.length > 0 && !methods.includes(request.method)) return;
       if (!failureStatusCodes.includes(response.statusCode)) return;
 
-      // Extracción segura de datos del cuerpo (evitar errores si body es null/string)
+      // 3. Extracción de identidad 
       const username = request.body && typeof request.body === 'object' 
         ? (request.body.username || request.body.email || 'unknown') 
         : 'unknown';
 
-      const authSignal = createSignal({
+      // 4. EMISIÓN SÍNCRONA
+      // Como el bus es síncrono, para cuando esta línea termine, 
+      // la decisión de bloqueo ya estará en el Store.
+      bus.emit(createSignal({
         type: 'auth.failed',
         level: 'low',
         source: 'authFailedDetector',
@@ -44,18 +45,9 @@ export function createAuthFailedDetector({ bus, config }) {
           username,
           statusCode: response.statusCode
         }
-      });
+      }));
 
-      // Asincronía: No retrasamos el flujo de la respuesta
-      setImmediate(() => {
-        try {
-          bus.emit(authSignal);
-        } catch (e) {
-          // Error en el bus silenciado
-        }
-      });
     } catch (err) {
-      // Fail-Open: Si el detector falla, la API sigue funcionando normalmente
     }
   };
 }
