@@ -11,60 +11,70 @@ export function createTelemetryReporter({ bus, config }) {
   const flush = async () => {
     if (buffer.length === 0) return;
 
-    // Tomamos una captura del buffer y lo vaciamos
+    // Tomamos los eventos del buffer
     const eventsToSend = buffer.splice(0, MAX_BUFFER_SIZE);
 
-    try {
-      // Usamos una señal de tiempo de espera (AbortController) 
-      // para que la petición no se quede colgada para siempre
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 4000);
+    // Mapeamos cada evento al formato que el Dashboard entiende y los enviamos en paralelo
+    const sendPromises = eventsToSend.map(async (event) => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
 
-      const response = await fetch(telemetry.endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`, // Estándar de la industria
-          'x-apiguard-key': apiKey // Mantenemos tu header por compatibilidad
-        },
-        body: JSON.stringify({
-          timestamp: new Date().toISOString(),
-          eventsCount: eventsToSend.length,
-          events: eventsToSend
-        }),
-        signal: controller.signal
-      });
+        const response = await fetch(telemetry.endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'x-apiguard-key': apiKey 
+          },
+          body: JSON.stringify({
+            apiKey: apiKey, // Algunos dashboards lo buscan en el body
+            timestamp: event.timestamp,
+            // ENVOLVEMOS LOS DATOS EN EL OBJETO "threat"
+            threat: {
+              type: event.type,
+              level: event.level,
+              ip: event.ip,
+              path: event.path,
+              method: event.method,
+              status_code: event.status_code,
+              score: event.score
+            }
+          }),
+          signal: controller.signal
+        });
 
-      clearTimeout(timeout);
+        clearTimeout(timeout);
 
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
+        if (!response.ok && (response.status === 401 || response.status === 403)) {
           console.error(`[APIGuard] Telemetry Auth Failed: Check your API Key.`);
         }
+      } catch (err) {
+        // Fallo silencioso para no interrumpir la ejecución principal
       }
-    } catch (err) {
-      // Fallo silencioso: La red puede fallar, pero APIGuard debe seguir vivo
-    }
+    });
+
+    // Esperamos a que todos los envíos de este flush terminen
+    await Promise.allSettled(sendPromises);
   };
 
   const timer = setInterval(flush, FLUSH_INTERVAL);
   if (timer.unref) timer.unref();
 
   bus.registerAction((signal) => {
-    // Filtro: Solo reportamos amenazas confirmadas o señales críticas
     if (!signal.type.startsWith('threat.')) return;
 
-    // Prevención de desbordamiento de memoria
     if (buffer.length >= HARD_LIMIT) {
-      buffer.shift(); // Sacamos el evento más viejo para meter el nuevo
+      buffer.shift();
     }
 
+    // Guardamos los datos con los nombres que luego mapearemos al "threat"
     buffer.push({
-      id: Math.random().toString(36).substr(2, 9), // ID único para el evento
+      id: Math.random().toString(36).substr(2, 9),
       type: signal.type,
-      level: signal.data?.level || 'medium',
-      ip: signal.event?.request?.ip || signal.data?.ip || 'unknown',
-      path: signal.event?.request?.path || signal.data?.path || 'unknown',
+      level: signal.level || signal.data?.level || 'medium',
+      ip: signal.data?.ip || signal.event?.request?.ip || 'unknown',
+      path: signal.data?.path || signal.event?.request?.path || 'unknown',
       method: signal.event?.request?.method || 'unknown',
       status_code: signal.event?.response?.statusCode || null,
       score: signal.data?.score || 0,
@@ -72,8 +82,6 @@ export function createTelemetryReporter({ bus, config }) {
     });
 
     if (buffer.length >= MAX_BUFFER_SIZE) {
-      // Usamos setImmediate para que el envío ocurra en el próximo ciclo
-      // y no bloquee el hilo actual del bus
       setImmediate(flush);
     }
   });
