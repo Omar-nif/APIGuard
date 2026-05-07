@@ -2,7 +2,7 @@
   "apiKey": "",
   "telemetry": {
     "enabled": false,
-    "endpoint": ""
+    "endpoint": "https://api.apiguardmonitor.com/api/v1/telemetry"
   },
   "security": {
     "detectors": {

@@ -2,7 +2,7 @@ export const defaultConfig = {
   apikey: process.env.APIGUARD_API_KEY || "", 
   telemetry: {
     enabled: false, 
-    endpoint: process.env.APIGUARD_TELEMETRY_URL || ""
+    endpoint: "https://api.apiguardmonitor.com/api/v1/telemetry" || ""
   },
 
   security: {
