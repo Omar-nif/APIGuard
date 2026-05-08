@@ -2,6 +2,11 @@ import { createNoSQLInjectionDetector } from "../../detectors/NoSQLInjection_Det
 import { createNoSQLInjectionAnalyzer } from "../../analyzers/NoSQLInjection_Analyzer.js";
 
 export function registerNoSQLInjectionThreat({ bus, config }){
+    const noSqliConfig = config?.security?.detectors?.noSqlInjection;
+
+    if (!noSqliConfig?.enabled) {
+      return;
+    }
     
     const detector = createNoSQLInjectionDetector ({ bus, config });
     const analyzer = createNoSQLInjectionAnalyzer ({ bus });

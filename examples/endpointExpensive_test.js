@@ -1,9 +1,9 @@
 // Prueba con fetch nativo (sin dependencias)
 async function launchAttack() {
-    const target = 'http://localhost:3000/api/reports/heavy-export';
+    const target = 'http://localhost:3000/api/v1/products';
     console.log(`--- Iniciando ataque a: ${target} ---`);
 
-    for (let i = 1; i <= 100; i++) {
+    for (let i = 1; i <= 500; i++) {
         try {
             const res = await fetch(target);
             console.log(`[${i}] Status: ${res.status}`);
