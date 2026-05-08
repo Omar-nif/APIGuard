@@ -2,7 +2,7 @@
   "apiKey": "",
   "telemetry": {
     "enabled": true,
-    "endpoint": ""
+    "endpoint": "https://api.apiguardmonitor.com/api/v1/telemetry"
   },
   "security": {
     "detectors": {
@@ -48,8 +48,8 @@
         "checkBody": true
       },
       "scraping": {
-        "enabled": true,
-        "threshold": 25,
+        "enabled": false,
+        "threshold": 20,
         "checkHeaders": true,
         "blockSuspiciousAgents": true
       },
@@ -70,7 +70,7 @@
           "enabled": true,
           "windowMs": 60000,
           "threshold": 10,
-          "endpoints": [],
+          "endpoints": ["/api/reports/generate"],
           "cooldownMs": 5000
         }
       }
@@ -115,7 +115,7 @@
         "duration": 60000,
         "delay": {
           "min": 500,
-          "max": 2000
+          "max": 5000
         }
       },
       "threat.dos.expensive_endpoint": {

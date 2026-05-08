@@ -76,6 +76,19 @@ app.get('/api/reports/heavy-export', (req, res) => {
   res.json({ message: "Reporte pesado generado" });
 });
 
+app.get('/api/v1/products', (req,res) => {
+  res.json({message: "producto encontrado exitosamente"});
+})
+
+// Endpoint de prueba para el Reporte de Integración
+app.get('/api/products/:id', (req, res) => {
+  res.json({
+    id: req.params.id,
+    name: `Producto de Prueba ${req.params.id}`,
+    price: Math.floor(Math.random() * 100)
+  });
+});
+
 // ---------------- Servidor -------------------------------
 app.listen(3000, () => {
   console.log('Servidor APIGuard en http://localhost:3000');
