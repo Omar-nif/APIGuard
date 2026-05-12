@@ -24,19 +24,44 @@ npm install apiguard-js
 ### Basic Usage
 ```javascript
 import express from 'express';
-import { apiguard } from 'apiguard';
+import apiguard from 'apiguard-js';
 
 const app = express();
+
+// 1. Inicializa el motor de seguridad
+// Esto cargará automáticamente la configuración de 'apiguard.config.json'
 const guard = apiguard();
 
-// Use it as a global middleware
+// ---------------------------------------------------------
+// ORDEN DE MIDDLEWARES (Importante)
+// ---------------------------------------------------------
+
+// A. CORS debe ir primero para permitir/denegar dominios
+app.use(cors()); 
+
+// B. APIGuard va inmediatamente después. 
+// Debe inspeccionar la petición ANTES de que el body-parser (json) 
+// o las rutas la procesen para detener ataques de inyección.
 app.use(guard);
 
+// C. Middlewares de parsing (Lectura de datos)
+app.use(express.json());
+
+// ---------------------------------------------------------
+// RUTAS PROTEGIDAS
+// ---------------------------------------------------------
+
 app.get('/api/data', (req, res) => {
-  res.json({ message: "Protected by APIGuard" });
+  res.json({ 
+    status: "Secure", 
+    message: "Esta respuesta solo es visible si la petición es legítima." 
+  });
 });
 
-app.listen(3000);
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor protegido por APIGuard en el puerto ${PORT}`);
+});
 ```
 
 

@@ -60,7 +60,7 @@ function init() {
 \x1b[1mNext steps:\x1b[0m
 
 1. Import APIGuard in your app:
-   \x1b[36mimport { apiguard } from 'apiguard';\x1b[0m
+   \x1b[36mimport apiguard from 'apiguard';\x1b[0m
 
 2. Initialize and use as middleware:
    \x1b[36mconst guard = apiguard();\x1b[0m
@@ -68,7 +68,6 @@ function init() {
 
 3. Customize your settings in \x1b[33mapiguard.config.json\x1b[0m
 
-Happy hacking!
 `);
   } catch (err) {
     error(`Failed to create configuration: ${err.message}`);
