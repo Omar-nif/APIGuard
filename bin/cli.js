@@ -4,6 +4,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import { defaultConfig } from '../src/config/defaultConfig.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -33,46 +35,32 @@ function init() {
   const targetPath = path.resolve(process.cwd(), 'apiguard.config.json');
   const isForce = args.includes('--force');
 
-  if (fs.existsSync(targetPath) && !isForce) {
-    error('apiguard.config.json already exists.');
-    console.log('   Use \x1b[33m--force\x1b[0m to overwrite the existing configuration.');
-    return;
+  if (fs.existsSync(targetPath) && !isForce) {  
+    error('apiguard.config.json already exists.');  
+    console.log( ' Use \x1b[33m--force\x1b[0m to overwrite the existing configuration.' ); 
+    return; 
   }
-
-  const defaultConfigPath = path.resolve(__dirname, '../src/config/defaultConfig.json');
-
-  if (!fs.existsSync(defaultConfigPath)) {
-    error('Internal Error: default configuration template not found.');
-    process.exit(1);
-  }
-
-  try {
-    const rawConfig = fs.readFileSync(defaultConfigPath, 'utf-8');
-    
-    const configObj = JSON.parse(rawConfig);
-    const formattedConfig = JSON.stringify(configObj, null, 2);
-
-    fs.writeFileSync(targetPath, formattedConfig);
-
-    log('apiguard.config.json created successfully!');
+  try { const formattedConfig = JSON.stringify(defaultConfig, null, 2); 
+    fs.writeFileSync(targetPath, formattedConfig); 
+    log('apiguard.config.json created successfully!'); 
     
     console.log(`
-\x1b[1mNext steps:\x1b[0m
+       \x1b[1mNext steps:\x1b[0m
 
-1. Import APIGuard in your app:
-   \x1b[36mimport apiguard from 'apiguard';\x1b[0m
+       1. Import APIGuard in your app: 
+       \x1b[36mimport apiguard from 'apiguard-js';\x1b[0m 
+       
+       2. Initialize and use as middleware: 
+       \x1b[36mconst guard = apiguard();\x1b[0m 
+       \x1b[36mapp.use(guard);\x1b[0m 
+       
+       3. Customize your settings in \x1b[33mapiguard.config.json\x1b[0m 
+       `); 
+      } catch (err) { 
+        error(`Failed to create configuration: ${err.message}`); 
+      } 
+    }
 
-2. Initialize and use as middleware:
-   \x1b[36mconst guard = apiguard();\x1b[0m
-   \x1b[36mapp.use(guard);\x1b[0m
-
-3. Customize your settings in \x1b[33mapiguard.config.json\x1b[0m
-
-`);
-  } catch (err) {
-    error(`Failed to create configuration: ${err.message}`);
-  }
-}
 
 function showHelp() {
   console.log(`

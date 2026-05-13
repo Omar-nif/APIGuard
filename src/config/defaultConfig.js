@@ -15,7 +15,7 @@ export const defaultConfig = {
 
       bruteForce: {
         enabled: true,
-        authPaths: ['/login', '/signin', '/api/auth/login'], 
+        authPaths: ['/login', '/signin'], 
         methods: ['POST'],
         failureStatusCodes: [401, 403],
         threshold: 5, 
@@ -64,7 +64,7 @@ export const defaultConfig = {
           enabled: true,
           windowMs: 60_000, 
           threshold: 10, 
-          endpoints: [], 
+          endpoints: ['/export'], 
           cooldownMs: 5000
         }
       }

@@ -50,6 +50,5 @@ export function loadConfig(userConfig = {}) {
   // defaultConfig < fileConfig < userConfig
   const mergedWithFile = deepMerge(defaultConfig, fileConfig);
   const finalConfig = deepMerge(mergedWithFile, userConfig);
-
   return finalConfig;
 }
