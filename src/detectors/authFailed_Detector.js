@@ -21,8 +21,19 @@ export function createAuthFailedDetector({ bus, config }) {
       const { request, response } = event;
       if (!request || !response) return;
 
+      console.log({
+        path: request.path,
+        originalUrl: request.originalUrl,
+        url: request.url,
+        baseUrl: request.baseUrl
+      });
+      console.log("CONFIG PATHS:", authPaths);
+      console.log("REQUEST PATH:", request.path);
+
       // 2. Verificaciones de corto circuito síncronas
-      if (!authPaths.some(p => request.path === p)) return;
+      const requestPath = request.originalUrl || request.path;
+
+      if (!authPaths.some(p => requestPath === p)) return;
       if (methods.length > 0 && !methods.includes(request.method)) return;
       if (!failureStatusCodes.includes(response.statusCode)) return;
 
@@ -41,7 +52,7 @@ export function createAuthFailedDetector({ bus, config }) {
         event,
         data: {
           ip: request.ip,
-          path: request.path,
+          path: requestPath,
           username,
           statusCode: response.statusCode
         }

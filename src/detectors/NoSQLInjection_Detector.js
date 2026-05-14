@@ -78,7 +78,8 @@ export function createNoSQLInjectionDetector({ bus, config }) {
         totalRequestScore += analyzeString(bodyStr);
         totalRequestScore += scanObject(body, 0, { count: 0 });
       }
-
+      console.log("BODY:", body);
+      console.log("NOSQL SCORE:", totalRequestScore);
       if (totalRequestScore > 0) {
         const suspicion = createSignal({
           type: 'nosql.suspicion',

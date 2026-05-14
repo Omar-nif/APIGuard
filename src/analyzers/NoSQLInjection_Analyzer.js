@@ -9,7 +9,7 @@ export function createNoSQLInjectionAnalyzer({ bus }) {
     try {
       // 1. Filtrado rápido de señales
       if (!signal || signal.type !== 'nosql.suspicion') return;
-
+      console.log("ANALYZER SIGNAL:", signal.data);
       const { score, threshold } = signal.data;
       const ip = signal.event?.request?.ip || signal.data?.ip;
       const path = signal.event?.request?.path || signal.data?.path;
