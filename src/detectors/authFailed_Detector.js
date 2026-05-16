@@ -20,7 +20,7 @@ export function createAuthFailedDetector({ bus, config }) {
 
       const { request, response } = event;
       if (!request || !response) return;
-
+/*
       console.log({
         path: request.path,
         originalUrl: request.originalUrl,
@@ -29,7 +29,7 @@ export function createAuthFailedDetector({ bus, config }) {
       });
       console.log("CONFIG PATHS:", authPaths);
       console.log("REQUEST PATH:", request.path);
-
+*/
       // 2. Verificaciones de corto circuito síncronas
       const requestPath = request.originalUrl || request.path;
 

@@ -1,7 +1,7 @@
 export const defaultConfig = {
-  apiKey: "ag_ad89709c794d17471f64ecf2", 
+  apiKey: process.env.APIGUARD_API_KEY || "", 
   telemetry: {
-    enabled: true, 
+    enabled: false, 
     endpoint: "https://api.apiguardmonitor.com/api/v1/telemetry" || ""
   },
 
@@ -15,7 +15,7 @@ export const defaultConfig = {
 
       bruteForce: {
         enabled: true,
-        authPaths: ['/login', '/signin', '/api/auth/login'], 
+        authPaths: ['/login', '/signin'], 
         methods: ['POST'],
         failureStatusCodes: [400, 401],
         threshold: 5, 
@@ -87,13 +87,13 @@ export const defaultConfig = {
       'threat.sql_injection': {
         action: 'block', 
         scope: 'ip',
-        duration: 3600_000 
+        duration: 360_000 
       },
 
       'threat.nosql_injection': {
         action: 'block',
         scope: 'ip',
-        duration: 3600_000
+        duration: 360_000
       },
 
       'threat.scraping': {

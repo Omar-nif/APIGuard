@@ -114,7 +114,7 @@ export function createDecisionEngine({ bus, decisionStore, config }) {
         `|-----------------------------------------|`
       );
       //console.log("TELEMETRY CONFIG:", config);
-  console.log("API KEY:", apiKey);
+  //console.log("API KEY:", apiKey);
     }
   }
 

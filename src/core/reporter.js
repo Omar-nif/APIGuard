@@ -1,7 +1,7 @@
 export function createTelemetryReporter({ bus, config }) {
   const { telemetry, apiKey } = config;
-  console.log("TELEMETRY CONFIG:", config);
-  console.log("API KEY:", apiKey);
+  //console.log("TELEMETRY CONFIG:", config);
+  //console.log("API KEY:", apiKey);
   if (!telemetry?.enabled || !apiKey || !telemetry.endpoint) return;
   
   let buffer = [];
