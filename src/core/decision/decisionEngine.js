@@ -113,6 +113,8 @@ export function createDecisionEngine({ bus, decisionStore, config }) {
         ` > Duración: ${decision.duration / 1000}s\n` +
         `|-----------------------------------------|`
       );
+      //console.log("TELEMETRY CONFIG:", config);
+  console.log("API KEY:", apiKey);
     }
   }
 
