@@ -1,5 +1,5 @@
 export const defaultConfig = {
-  apikey: process.env.APIGUARD_API_KEY || "", 
+  apiKey: process.env.APIGUARD_API_KEY || "", 
   telemetry: {
     enabled: false, 
     endpoint: "https://api.apiguardmonitor.com/api/v1/telemetry" || ""
@@ -9,7 +9,7 @@ export const defaultConfig = {
     detectors: {
       endpointEnumeration: {
         enabled: true,
-        windowMS: 60_000,
+        windowMs: 60_000,
         threshold: 15 
       },
 
@@ -19,7 +19,7 @@ export const defaultConfig = {
         methods: ['POST'],
         failureStatusCodes: [401, 403],
         threshold: 5, 
-        windowMS: 60_000
+        windowMs: 60_000
       },
 
       sqlInjection: {
