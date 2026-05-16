@@ -30,6 +30,14 @@ export function loadConfig(userConfig = {}) {
   let fileConfig = {};
 
   try {
+    console.log("CWD:", process.cwd());
+
+    console.log(
+      "CONFIG EXISTS:",
+      fs.existsSync(
+        path.resolve(process.cwd(), 'apiguard.config.json')
+      )
+    );
     const configCandidates = [
       path.resolve(process.cwd(), 'apiguard.config.json'),
       path.resolve(process.cwd(), 'examples', 'apiguard.config.json')

@@ -1,7 +1,7 @@
 export const defaultConfig = {
-  apiKey: process.env.APIGUARD_API_KEY || "", 
+  apiKey: "ag_ad89709c794d17471f64ecf2", 
   telemetry: {
-    enabled: false, 
+    enabled: true, 
     endpoint: "https://api.apiguardmonitor.com/api/v1/telemetry" || ""
   },
 
@@ -15,9 +15,9 @@ export const defaultConfig = {
 
       bruteForce: {
         enabled: true,
-        authPaths: ['/login', '/signin'], 
+        authPaths: ['/login', '/signin', '/api/auth/login'], 
         methods: ['POST'],
-        failureStatusCodes: [401, 403],
+        failureStatusCodes: [400, 401],
         threshold: 5, 
         windowMs: 60_000
       },
