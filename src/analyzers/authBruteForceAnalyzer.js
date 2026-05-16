@@ -7,7 +7,7 @@ export function createAuthBruteForceAnalyzer({ bus, config }) {
   if (!bruteForce?.enabled) return () => {};
 
   const {
-    windowMS = 60_000,
+    windowMs = 60_000,
     threshold = 5,
     maxTrackedIps = 10000 
   } = bruteForce;
@@ -19,7 +19,7 @@ export function createAuthBruteForceAnalyzer({ bus, config }) {
     let data = state.get(ip);
 
     // Si la IP existe pero el último intento fue hace mucho, reseteamos su ventana
-    if (data && (now - data.lastSeen > windowMS)) {
+    if (data && (now - data.lastSeen > windowMs)) {
       state.delete(ip);
       data = null;
     }
@@ -44,11 +44,11 @@ export function createAuthBruteForceAnalyzer({ bus, config }) {
   const cleanupInterval = setInterval(() => {
     const now = Date.now();
     for (const [ip, data] of state.entries()) {
-      if (now - data.lastSeen > windowMS) {
+      if (now - data.lastSeen > windowMs) {
         state.delete(ip);
       }
     }
-  }, windowMS * 2).unref();
+  }, windowMs * 2).unref();
 
   function evaluate(ip, data, signal) {
     if (data.attempts >= threshold) {
@@ -60,7 +60,7 @@ export function createAuthBruteForceAnalyzer({ bus, config }) {
         data: {
           ip,
           attempts: data.attempts,
-          windowMS
+          windowMs
         }
       });
 
