@@ -4,7 +4,7 @@ export const SCRAPING_PATTERNS = {
     { name: 'Axios Node.js', regex: /axios/i, score: 5 },             // Bajamos de 10 a 5
     { name: 'Postman Runtime', regex: /PostmanRuntime/i, score: 2 },  // Casi inofensivo
     { name: 'Curl', regex: /curl/i, score: 5 },
-    { name: 'Scrapy', regex: /scrapy/i, score: 15 },
+    { name: 'Scrapy', regex: /scrapy/i, score: 20 },
   ],
 
   AUTOMATION_TOOLS: [
